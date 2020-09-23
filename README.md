@@ -1,2 +1,2 @@
 # Py-RAMID
-A python package of a Riverware and Agent-based Modeling Interface for Developers.
+A **Py**thon package of a **R**iverware and **A**gent-based **M**odeling **I**nterface for **D**evelopers.
