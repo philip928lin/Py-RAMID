@@ -374,7 +374,7 @@ class RiverwareWrap(object):
         self.logger.info("Creat DoNothing.bat file at {}.".format(path))
         return None
     
-    def runPyRAMID(self, RiverwarePath, BatchFileName, ExecuteNow = True, SaveAllLog = True):
+    def runPyRAMID(self, RiverwarePath, BatchFileName, ExecuteNow = True, Log = True):
         '''
         Execute PyRAMID through python code. First, the program will create the executable .bat file. Then, run the .bat file by subprocess python package.
         All the run-time information will be stored in Main.log. The Riverware software run-time information will be stored at BatchFiles folder. 
@@ -406,7 +406,7 @@ class RiverwareWrap(object):
         if ExecuteNow:
             start_time = datetime.now()
             # Create the local log file for this run.
-            if SaveAllLog:
+            if Log:
                 dt_string = datetime.now().strftime("%Y%m%d_%H%M%S")
                 Logfile = 'RunBatch_{}.log'.format(dt_string)
             else:
