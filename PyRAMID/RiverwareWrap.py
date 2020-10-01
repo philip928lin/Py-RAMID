@@ -409,16 +409,15 @@ class RiverwareWrap(object):
             if Log:
                 dt_string = datetime.now().strftime("%Y%m%d_%H%M%S")
                 Logfile = 'RunBatch_{}.log'.format(dt_string)
-            else:
-                Logfile = "RunBatch.log"
-            self.logger, self.fh = AddLocalLogFile(Logfile, self.logger, self.WD)
+                self.logger, self.fh = AddLocalLogFile(Logfile, self.logger, self.WD)
+                CreateFileHandler = True
+            
             # fh = logging.FileHandler(Logfile, 'w') # Overwrite the file
             # fh.setLevel(logging.DEBUG)
             # formatter_fh = logging.Formatter('[%(asctime)s] %(name)s [%(levelname)s] %(message)s')
             # fh.setFormatter(formatter_fh)
             # self.logger.addHandler(fh)
-            CreateFileHandler = True
-                
+                            
             self.logger.info("Execute RunBatch.bat file.")
             print("\n\nRunning PyRAMID.........     \n(This will take time. You can monitor the progress by checking log file in the Batch folder.)")
             

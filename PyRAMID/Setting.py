@@ -54,13 +54,13 @@ def AddGlobalLogFile(Filename = None, Directory = os.getcwd(), mode = 'w', Msgle
     logger.info("Global log file is created at {}".format(os.path.join(os.getcwd(),Filename[2:])))
     return None
 
-def AddLocalLogFile(filename, logger, Directory, Msglevel = None):
+def AddLocalLogFile(filename, logger, Directory, mode = 'w', Msglevel = None):
     '''
     This function is to add the local log file for modules within RiverwareABM package. 
     This function can be use for files outside of RiverwareABM package if the proper logger is given. To get the proper logger, we recommend user to run setLoggerForCustomizedFile().
     '''
     Filename = os.path.join(Directory, filename)
-    fh = logging.FileHandler(Filename, 'w') # Overwrite the file
+    fh = logging.FileHandler(Filename, mode) # w: Overwrite the file, a: append
     if Msglevel is not None:
         assert Msglevel in ['debug', 'info', 'warning', 'error'], print("ValueError Msglevel must be one of these [None, 'debug', 'info', 'warning', 'error'].")
         fh.setLevel(MsglevelDict[Msglevel])
