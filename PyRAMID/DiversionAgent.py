@@ -104,7 +104,7 @@ class DiversionAgent(object):
         self.logger.debug(self.agentname +": "+"BetaN has been set to {}".format(self.BetaN))
         return quantile
     
-    def makeDecision(self, AgentsProbArr, strength):
+    def makeDecision(self, AgentsProbArr, strength, Stochastic = False):
         '''
         Wrap the rest of the calculation in this function.
         Note genQuantile() must run for each agent first and gather AgentsProbArr in the order of agent.index.
@@ -121,7 +121,7 @@ class DiversionAgent(object):
         # $$$$$$$$$$$$$ Step 6 $$$$$$$$$$$$$ Agent's risk attitude
         self.mappingWithProspectWeightFunction()
         # $$$$$$$$$$$$$ Step 7 $$$$$$$$$$$$$ CAlculate expected annual change of diversion (cfs-yr)
-        self.dDiversion()
+        self.dDiversion(Stochastic = Stochastic)
         # $$$$$$$$$$$$$ Step 8 $$$$$$$$$$$$$ Disaggregate into daily diversion data
         #self.Disaggregate2Daily(OriginalDailyDiv = OriginalDailyDiv)  
         return None
@@ -227,7 +227,7 @@ class DiversionAgent(object):
         else:
             p = np.array(p)
             
-        p_new = p.copy()  # CDF
+        p_new = p.copy()  # pmf
         # Scaled prospect function
         p_new_p = (p[p>=center]-center)/(1-center)
         p_new_n = (p[p<center]-center)/(center)
@@ -239,23 +239,35 @@ class DiversionAgent(object):
         self.logger.debug(self.agentname +": "+"Finish risk attitude mapping using prospect function.")
         return None
     
-    def dDiversion(self):
+    def dDiversion(self, Stochastic = False):
         '''
         Calculate the expected/random value of the amount of the cahnge in annual diversion from mapped beta distribution.
         MaxdDivRatio define the maximum diversion change between two consecutive years.
         '''
         scale = self.Par["dDivRatioScale"]
         MaxdDivRatio = self.Par["MaxdDivRatio"]
-        p_new = self.CurrentValue["p_prospect"]  # CDF
+        p_new = self.CurrentValue["p_prospect"]  # pmf
         center = self.Par["RLCenter"]
         interval = 2 / (len(p_new) - 1)
         dDivList = (  np.arange(-1,1 + interval, interval) - (center-0.5)*2  )*MaxdDivRatio*scale
-        dDivRatioExpected = sum(dDivList*p_new)  # Expected value
-        if dDivRatioExpected <= -1:
-            self.logger.error("ValueError " + self.agentname +": " + "The dDivRatioExpected = {} <-1, which will result in negative diversion value. We reset to -0.9".format(dDivRatioExpected))
-            dDivRatioExpected = -0.9
         
-        self.CurrentValue["AnnualdDivRatio"] = dDivRatioExpected
+        if Stochastic:
+            rn = np.random.uniform(0,1)  # inverse cdf method
+            p_new_cdf = np.array(p_new)/sum(p_new)
+            p_new_cdf = np.cumsum(p_new_cdf)
+            rn_index = np.where(p_new_cdf >= rn)[0][0] # Take first index
+            dDivRatio = dDivList[rn_index]
+            if dDivRatio <= -1:
+                self.logger.error("ValueError " + self.agentname +": " + "The dDivRatioExpected = {} <-1, which will result in negative diversion value. We reset to -0.9".format(dDivRatio))
+                dDivRatio = -0.9
+            self.CurrentValue["AnnualdDivRatio"] = dDivRatio
+        else: # Expected value
+            dDivRatioExpected = sum(dDivList*p_new)  # Expected value
+            if dDivRatioExpected <= -1:
+                self.logger.error("ValueError " + self.agentname +": " + "The dDivRatioExpected = {} <-1, which will result in negative diversion value. We reset to -0.9".format(dDivRatioExpected))
+                dDivRatioExpected = -0.9
+            self.CurrentValue["AnnualdDivRatio"] = dDivRatioExpected
+            
         self.logger.debug(self.agentname +": "+"AnnualdDivRatio = {}".format(self.CurrentValue["AnnualdDivRatio"] ))
         return None
     
