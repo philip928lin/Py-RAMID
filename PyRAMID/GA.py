@@ -157,7 +157,7 @@ class GeneticAlgorithm(object):
                     os.mkdir(self.SubfolderPath)
                     self.logger.info("Create subfolder AutoCalibration at {}"\
                                      .format(self.SubfolderPath))
-            # Check threads input
+            # Check and assign threads input
             if parallel != 0:
                 MaxThreads = multiprocessing.cpu_count()  # Max threads number
                 if threads is None or threads > MaxThreads:
@@ -172,7 +172,6 @@ class GeneticAlgorithm(object):
             self.dim = int(dimension)
             self.func = function
             self.parallel = parallel
-            self.NumThreads = threads
             self.var_index = {}
             if function_timeout is None:
                 function_timeout = 86400 # If None, we set timeout = 1 day

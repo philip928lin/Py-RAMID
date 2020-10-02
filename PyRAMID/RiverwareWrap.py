@@ -489,7 +489,16 @@ class RiverwareWrap(object):
         return df
 
 ## Archive files
-    def createArchiveFile(self, Filename):
+    def createArchiveFile(self, Filename, Collect = True):
+        """
+        Create txt archive files.
+        Filename: Complete path or just txt filename. If users only provide txt
+                  filename, the archive files will be stored at Archive folder 
+                  under working directory.
+        Collect: True, then the filename and corresponding path will be saved 
+                 at ArchiveFilePath.pickle, which could be used by 
+                 ArchiveFiles2CSV().
+        """
         Filename = Filename.replace("\\", "/")
         directory = "/".join(Filename.split("/")[:-1])
         if os.path.isdir(directory):
@@ -505,30 +514,36 @@ class RiverwareWrap(object):
             
         self.ArchiveFiles[Filename.split("/")[-1]] = Filename
         self.logger.info("Create archive file: {}".format(Filename))
-        with open(os.path.join(self.WD, "ArchiveFilePath.pickle"), 'wb') as outfile:
-            pickle.dump(self.ArchiveFiles, outfile)
+        if Collect:
+            with open(os.path.join(self.WD, "ArchiveFilePath.pickle"), 'wb') as outfile:
+                pickle.dump(self.ArchiveFiles, outfile)
         return None
     
-    def archive(self, txt_filename, value):
-        with open(self.ArchiveFiles[txt_filename], 'a') as f: 
+    def archive(self, txt_filename, value, Collect = False):
+        Filename = txt_filename.replace("\\", "/").split("/")[-1]
+        if self.ArchiveFiles.get(Filename) is None:
+            self.createArchiveFile(txt_filename, Collect)
+        
+        with open(self.ArchiveFiles[Filename], 'a') as f: 
             f.write(str(value)+"\n")
-            
+        return None
+    
     def ArchiveFiles2CSV(self):
         # Try to search the WD for ArchiveFilePath.pickle
         try: 
             with open(os.path.join(self.WD, "ArchiveFilePath.pickle"), "rb") as f:
-                self.ArchiveFiles = pickle.load(f)      # Path of created archive files.
+                ArchiveFiles = pickle.load(f)      # Path of created archive files.
             self.logger.info("Load ArchiveFilePath.pickle")
         except:
-            self.ArchiveFiles = {}
+            ArchiveFiles = {}
         
         
-        if self.ArchiveFiles == {}:
-            self.logger.info("ArchiveFiles is empty.")
+        if ArchiveFiles == {}:
+            self.logger.info("ArchiveFilePath.pickle is empty or not found.")
         else:
             data = {}
-            for file in self.ArchiveFiles:
-                with open(self.ArchiveFiles[file], 'r') as f: 
+            for file in ArchiveFiles:
+                with open(ArchiveFiles[file], 'r') as f: 
                     data[file.split(".")[0]] = [i.rstrip() for i in f.readlines()]
             df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in data.items() ]))
             df.to_csv(os.path.join(self.WD, "ArchiveData.csv"),  index = False)
