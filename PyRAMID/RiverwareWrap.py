@@ -17,7 +17,7 @@ import pickle
 from PyRAMID.Setting import ConsoleLogParm, MsglevelDict, AddLocalLogFile, RemoveLocalLogFile
 
 class RiverwareWrap(object):
-    def __init__(self, WD, copyFromRootForGA_RootPath = None, Msglevel = None):
+    def __init__(self, WD, copyFromRootForGA_RootPath = None, overwrite = False, Msglevel = None):
         # Setup the log msg
         self.logger = logging.getLogger(__name__)
         if Msglevel is None: Msglevel = ConsoleLogParm['Msglevel']
@@ -47,9 +47,9 @@ class RiverwareWrap(object):
         self.logger.info("Set working directory to {}".format(WD))
         
         if copyFromRootForGA_RootPath is not None:
-            self.copyFolder(src = os.path.join(copyFromRootForGA_RootPath, "ABM"), dest = self.PATH["ABM_Path"])
-            self.copyFolder(src = os.path.join(copyFromRootForGA_RootPath, "RWModel"), dest = self.PATH["RWModel_Path"])
-            self.copyFolder(src = os.path.join(copyFromRootForGA_RootPath, "RW_Ini_Input"), dest = self.PATH["RW_Ini_Input_Path"])
+            self.copyFolder(src = os.path.join(copyFromRootForGA_RootPath, "ABM"), dest = self.PATH["ABM_Path"], overwrite = overwrite)
+            self.copyFolder(src = os.path.join(copyFromRootForGA_RootPath, "RWModel"), dest = self.PATH["RWModel_Path"], overwrite = overwrite)
+            self.copyFolder(src = os.path.join(copyFromRootForGA_RootPath, "RW_Ini_Input"), dest = self.PATH["RW_Ini_Input_Path"], overwrite = overwrite)
             self.logger.info("ABM and RWModel folders have been copied to {}.".format(self.WD))
             self.resetDMIPath2mdlFile() # modify .mdl DMI path
             
@@ -77,11 +77,15 @@ class RiverwareWrap(object):
         return None
     
 
-    def copyFolder(self, src, dest):
+    def copyFolder(self, src, dest, overwrite = False):
         '''
         Cpoy the following src folder to dest. Please make sure the dest folder is not exist.
         Note this function will not copy .control and year.txt files
         '''
+        # Remove the existed folder.
+        if os.path.exists(dest) and overwrite:
+            shutil.rmtree(dest)
+            self.logger.warning('The following folder will be overwrited. {}'.format(dest))
         try:
             shutil.copytree(src, dest, ignore=shutil.ignore_patterns('*.control', 'year.txt'))
         except OSError as e:
@@ -90,6 +94,10 @@ class RiverwareWrap(object):
                 shutil.copy(src, dest)
             else:
                 self.logger.error('PathError Directory not copied. Error: %s' % e)
+        return None
+    
+    def copyFile(self, src, dest):
+        shutil.copyfile(src, dest) # Will overwrite existed file 
         return None
     
     def reduceStorageOfGivenFolder(self, reduceLevel = "keep_result_only"):
