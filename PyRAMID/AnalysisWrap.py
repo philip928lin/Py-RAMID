@@ -71,7 +71,7 @@ class PyRAMIDAnalysis(object):
         if name is None:
             self.name = ""
         else:
-            self.name = ": " + name
+            self.name = name
             
         self.x_label = x_label
         self.y_label = y_label
@@ -184,7 +184,7 @@ class PyRAMIDAnalysis(object):
         plt.show()
         return ax
     
-    def TimeseriesPlot(self, x = None, Title = None, xyLabal = None):
+    def TimeseriesPlot(self, x = None, Title = None, xyLabal = None, ax = None):
         if x is not None:
             assert isinstance(x, (list, np.ndarray)), print("x has to be list, or array")
         x_obv = self.x_obv
@@ -208,8 +208,9 @@ class PyRAMIDAnalysis(object):
             #     x = pd.date_range(start=x[0], end=x[1])
             # except:
             #     x = x
-                
-        fig, ax = plt.subplots()
+        
+        if ax is None:
+            fig, ax = plt.subplots()
         ax.plot(x, x_obv, label = self.x_label)
         ax.plot(x, y_sim, linestyle='dashed', label = self.y_label)
         #ax.bar(x, np.nan_to_num(y_obv-y_sim), label = "Hydromet - YAKRW", color = "red")
@@ -218,7 +219,8 @@ class PyRAMIDAnalysis(object):
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         #ax.set_xticks(pd.date_range(start='1/1/1966', end='12/31/2005'))
-        plt.show()
+        if ax is None:
+            plt.show()
         return ax
     
     
