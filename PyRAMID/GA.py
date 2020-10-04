@@ -85,7 +85,8 @@ class GeneticAlgorithm(object):
         if Msglevel is None: Msglevel = ConsoleLogParm['Msglevel']
         else:
             assert Msglevel in ['debug', 'info', 'warning', 'error'],\
-                print("ValueError Msglevel must be one of these [None, 'debug', 'info', 'warning', 'error'].")
+                print("ValueError Msglevel must be one of these "+\
+                      "[None, 'debug', 'info', 'warning', 'error'].")
             Msglevel = MsglevelDict[Msglevel]
         self.logger.setLevel(Msglevel)   
         self.CreateFileHandler = False
@@ -95,8 +96,8 @@ class GeneticAlgorithm(object):
         if continue_file is not None:
             # Load the GAobject.pickle to continue previous run.
             assert os.path.exists(continue_file),\
-                self.logger.error("PathError given continue_file is not exist {}."\
-                                  .format(continue_file))
+                self.logger.error("PathError given continue_file is not "+\
+                                  "exist {}.".format(continue_file))
             self.continue_file = continue_file
             self.load_continue_file()
             # Load file will overwrite self.continue_file, so we need to assign
@@ -114,7 +115,9 @@ class GeneticAlgorithm(object):
             if WD is None:
                 self.WD = None
                 if saveGADataPerIter:
-                    self.logger.error("ValueError To enable saveGADataPerIter and log file, valid WD must be given.")
+                    self.logger.error("ValueError To enable "+\
+                                      "saveGADataPerIter and log file, "+\
+                                      "valid WD must be given.")
                     self.saveGADataPerIter = False
             else:
                 assert os.path.isdir(WD),\
@@ -141,17 +144,26 @@ class GeneticAlgorithm(object):
             # Variable types
             assert(variable_type=='bool' or variable_type=='int' or \
                    variable_type=='real' or variable_type=='cate'), \
-                   self.logger.error("TypeError variable_type must be 'bool', 'int', 'real', or 'cate'.")
+                   self.logger.error("TypeError variable_type must be "+\
+                                     "'bool', 'int', 'real', or 'cate'.")
             # parallel options
             assert parallel in [0,1,2],\
-                self.logger.error("TypeError parallel must be 0: no parallel, 1: parallel, 2: parallel with new sub-working folders.")
+                self.logger.error("TypeError parallel must be "+\
+                                  "0: no parallel, 1: parallel, "+\
+                                  "2: parallel with new sub-working folders.")
             # function
             assert (callable(function)),\
                 self.logger.error("TypeError function must be callable.")
             # function arguments
             if parallel == 2:
                 assert [i for i in signature(function).parameters] == \
-                    ['var', 'GA_WD'],  self.logger.error("ValueError To run GA for parallel = 2 (coupling), given sim function has to contain two input arguments: 'var' (1d array) and GA_WD, which user should use RiverwareWrap.createFiles(GA_WD) to create subfolder in their sim function and conduct the simulation under this new directory.")
+                    ['var', 'GA_WD'],  self.logger.error("ValueError To "+\
+                    "run GA for parallel = 2 (coupling), given sim function "+\
+                    "has to contain two input arguments: 'var' (1d array) "+\
+                    "and GA_WD, which user should use "+\
+                    "RiverwareWrap.createFiles(GA_WD) to create subfolder "+\
+                    "in their sim function and conduct the simulation under "+\
+                    "this new directory.")
                 self.SubfolderPath = os.path.join(self.WD, "AutoCalibration")
                 if os.path.isdir(self.SubfolderPath) is not True:
                     os.mkdir(self.SubfolderPath)
@@ -181,52 +193,63 @@ class GeneticAlgorithm(object):
             ##################################################################
             # Assign var_type and var_bound and var_index
             if variable_type_mixed is None: 
-                # We assign identical type according to variable_type to each variable.
+                # We assign identical type according to variable_type to each 
+                # variable.
                 if variable_type == 'real': 
                     self.var_type = np.array([['real']]*self.dim)
                     self.var_index["cate"] = np.array([])
                     self.var_index["int"] = np.array([])
-                    self.var_index["real"] = np.where(self.var_type == 'real')[0]
-                else:
-                    self.var_type = np.array([['int']]*self.dim)    # 'int', 'bool', 'cate'
+                    self.var_index["real"] = \
+                        np.where(self.var_type == 'real')[0]
+                else:   # 'int', 'bool', 'cate'
+                    self.var_type = np.array([['int']]*self.dim)    
                     if variable_type == 'cate':
-                        self.var_index["cate"] = np.where(self.var_type == 'int')[0]
+                        self.var_index["cate"] = \
+                            np.where(self.var_type == 'int')[0]
                         self.var_index["int"] = np.array([])
                         self.var_index["real"] = np.array([])
                     else:
                         self.var_index["cate"] = np.array([])
-                        self.var_index["int"] = np.where(self.var_type == 'int')[0]
+                        self.var_index["int"] = \
+                            np.where(self.var_type == 'int')[0]
                         self.var_index["real"] = np.array([])
                         
                 # Assign var_bound if it is not given
                 if variable_boundaries is None:
                     self.var_bound = np.array([[0,1]]*self.dim)
                 else:
-                    assert isinstance(variable_boundaries, (list, np.ndarray)),\
-                        self.logger.error("TypeError variable_boundaries must be numpy array or list.") 
+                    assert isinstance(variable_boundaries, (list,np.ndarray)),\
+                        self.logger.error("TypeError variable_boundaries "+\
+                                          "must be numpy array or list.") 
                     variable_boundaries = np.array(variable_boundaries) 
                     assert (variable_boundaries.shape == (self.dim,2)),\
-                        self.logger.error("ValueError variable_type_mixed must have a shape (dimension, 2).") 
+                        self.logger.error("ValueError variable_type_mixed "+\
+                                          "must have a shape (dimension, 2).") 
                     self.var_bound = variable_boundaries
             else: 
                 # var types should be defined in variable_type_mixed
                 assert isinstance(variable_type_mixed, (list, np.ndarray)),\
-                    self.logger.error("TypeError variable_type_mixed must be numpy array or list.") 
+                    self.logger.error("TypeError variable_type_mixed must "+\
+                                      "be numpy array or list.") 
                 assert isinstance(variable_boundaries, (list, np.ndarray)),\
-                    self.logger.error("TypeError variable_boundaries must be numpy array or list.")  
+                    self.logger.error("TypeError variable_boundaries must "+\
+                                      "be numpy array or list.")  
                 variable_type_mixed = np.array(variable_type_mixed)
                 variable_boundaries = np.array(variable_boundaries)            
                 assert (len(variable_type_mixed) == self.dim),\
-                    self.logger.error("ValueError variable_type_mixed must have a length equal dimension.") 
+                    self.logger.error("ValueError variable_type_mixed must "+\
+                                      "have a length equal dimension.") 
                 assert (variable_boundaries.shape == (self.dim,2)),\
-                    self.logger.error("ValueError variable_type_mixed must have a shape (dimension, 2).") 
+                    self.logger.error("ValueError variable_type_mixed must "+\
+                                      "have a shape (dimension, 2).") 
                 self.var_type = variable_type_mixed
                 self.var_bound = variable_boundaries
                 self.var_index["cate"] = np.where(self.var_type == 'cate')[0]
                 self.var_index["int"] = np.where(self.var_type == 'int')[0]
                 self.var_index["real"] = np.where(self.var_type == 'real')[0]
                 # Replace cate as int for rest of the calculation
-                self.var_type = np.where(self.var_type=='cate', 'int', self.var_type) 
+                self.var_type = \
+                    np.where(self.var_type=='cate', 'int', self.var_type) 
                 
             ##################################################################
             # Check algorithm_parameters
@@ -235,27 +258,35 @@ class GeneticAlgorithm(object):
                         'crossover_probability', 'parents_portion', \
                         'crossover_type', 'max_iter_without_improv'])\
                         .issubset(set(algorithm_parameters.keys())),\
-                self.logger.error("KeyError Missing keys in the algorithm_parameters.")
+                self.logger.error("KeyError Missing keys in the "+\
+                                  "algorithm_parameters.")
             self.par = algorithm_parameters 
             self.par['population_size'] = int(self.par['population_size'])
             assert (self.par['parents_portion'] <= 1 and \
                     self.par['parents_portion'] >= 0), \
-                self.logger.error("ValueError parents_portion must be in range [0,1].")
+                self.logger.error("ValueError parents_portion must be in "+\
+                                  "range [0,1].")
             assert (self.par['mutation_probability'] <= 1 and \
                     self.par['mutation_probability'] >= 0), \
-                self.logger.error("ValueError mutation_probability must be in range [0,1].")
+                self.logger.error("ValueError mutation_probability must be "+\
+                                  "in range [0,1].")
             assert (self.par['crossover_probability'] <= 1 and \
                     self.par['crossover_probability'] >= 0), \
-                self.logger.error("ValueError crossover_probability must be in range [0,1].")
-            assert (self.par['elit_ratio'] <= 1 and self.par['elit_ratio'] >= 0), \
-                self.logger.error("ValueError elit_ratio must be in range [0,1].")
+                self.logger.error("ValueError crossover_probability must be "+\
+                                  "in range [0,1].")
+            assert (self.par['elit_ratio'] <= 1 and \
+                    self.par['elit_ratio'] >= 0), \
+                self.logger.error("ValueError elit_ratio must be in "+\
+                                  "range [0,1].")
             assert (self.par['mutation_probability'] <= 1 and \
                     self.par['mutation_probability'] >= 0), \
-                self.logger.error("ValueError mutation_probability must be in range [0,1].")
+                self.logger.error("ValueError mutation_probability must be "+\
+                                  "in range [0,1].")
             assert (self.par['crossover_type'] == 'uniform' or \
                     self.par['crossover_type'] == 'one_point' or \
                     self.par['crossover_type'] == 'two_point'), \
-                self.logger.error("ValueError crossover_type must be 'uniform', 'one_point', or 'two_point' Enter string.")
+                self.logger.error("ValueError crossover_type must be "+\
+                                  "'uniform', 'one_point', or 'two_point'")
             
             # Make sure that population_size is properly assigned
             self.par['parent_size'] = int(self.par['parents_portion']\
@@ -283,19 +314,23 @@ class GeneticAlgorithm(object):
                         self.par['max_num_iteration'] += \
                             (self.var_bound[i][1]-self.var_bound[i][0]) \
                                 *50*(100/self.par['population_size'])
-                self.par['max_num_iteration'] = int(self.par['max_num_iteration'])
+                self.par['max_num_iteration'] = \
+                    int(self.par['max_num_iteration'])
                 if (self.par['max_num_iteration'] \
                     *self.par['population_size']) > 10000000:
                     self.par['max_num_iteration'] = \
                         10000000/self.par['population_size']
             else:
-                self.par['max_num_iteration'] = int(self.par['max_num_iteration'])
+                self.par['max_num_iteration'] = \
+                    int(self.par['max_num_iteration'])
                 
             # Make sure that max_num_iteration is properly assigned    
             if self.par['max_iter_without_improv'] == None:
-                self.par['max_iter_without_improv'] = self.par['max_num_iteration'] + 1
+                self.par['max_iter_without_improv'] = \
+                    self.par['max_num_iteration'] + 1
             else:
-                self.par['max_iter_without_improv'] = int(self.par['max_iter_without_improv'])      
+                self.par['max_iter_without_improv'] = \
+                    int(self.par['max_iter_without_improv'])      
             
             # Print out the summary of GA object settings.
             self.logger.info("The GA object have been initiated: \n"+"\n" \
@@ -312,7 +347,8 @@ class GeneticAlgorithm(object):
         # Load back all the previous class attributions.
         for key in dictionary:
             setattr(self, key, dictionary[key])
-        self.logger.info("The previous GA object have been loaded back and ready to run.")
+        self.logger.info("The previous GA object have been loaded back "+\
+                         "and ready to run.")
         
     def save_attribution(self, path):
         """Save GAobject.pickle """
@@ -379,8 +415,10 @@ class GeneticAlgorithm(object):
             except FunctionTimedOut:
                 print("given function is not applicable")
             assert (obj!=None), \
-                self.logger.error("FunctionTimedOut After {} seconds delay, the given function does not provide any output."\
-                                  .format(str(funtimeout)) )
+                self.logger.error("FunctionTimedOut After {} seconds delay, "\
+                                      .format(str(funtimeout)) + \
+                                  "the given function does not provide any "+\
+                                  "output.")
             return obj
         
         def sim1(X):    
@@ -416,10 +454,14 @@ class GeneticAlgorithm(object):
         # Parallel 1: User defined function is run in parallel.
         # Only use this when no working folder is needed.
         elif self.parallel == 1:
-            self.logger.info("Iter {}/{} Start parallel simulation with {} threads."\
-                             .format(currentIter, maxIter, self.NumThreads))
-            ParallelResults = Parallel(n_jobs = self.NumThreads, prefer="threads", timeout=funtimeout)\
-                                      (delayed(sim1)(X=pop[k, :dim]) for k in range(parent_size, pop_size, 1)) 
+            self.logger.info("Iter {}/{} Start parallel simulation with {} "\
+                             .format(currentIter, maxIter, self.NumThreads)+\
+                             "threads.")
+            ParallelResults = Parallel(n_jobs = self.NumThreads, \
+                                       prefer="threads", \
+                                       timeout=funtimeout)\
+                                      (delayed(sim1)(X=pop[k, :dim]) \
+                                      for k in range(parent_size, pop_size, 1)) 
             # Collect results
             for k in range(parent_size, pop_size, 1):
                 pop[k, dim] = ParallelResults[k - parent_size]  
@@ -429,17 +471,22 @@ class GeneticAlgorithm(object):
         # folder and run the simulation in the isolated environment.
         elif self.parallel == 2:
             SubfolderPath = self.SubfolderPath
-            self.logger.info("Iter {}/{} Start parallel simulation (subfolder) with {} threads."\
-                             .format(currentIter, maxIter, self.NumThreads))
-            ParallelResults = Parallel(n_jobs = self.NumThreads, prefer="threads", timeout=funtimeout)\
-                (delayed(sim2)(X=pop[k, :dim], WD=SubfolderPath, Iteration=currentIter, member=k) \
-                 for k in range(parent_size, pop_size, 1)) 
+            self.logger.info("Iter {}/{} Start parallel simulation with {} "\
+                             .format(currentIter, maxIter, self.NumThreads)+\
+                             "threads.")
+            ParallelResults = Parallel(n_jobs = self.NumThreads, \
+                                       prefer="threads", \
+                                       timeout=funtimeout)\
+                            (delayed(sim2)(X=pop[k, :dim], WD=SubfolderPath, \
+                                           Iteration=currentIter, member=k) \
+                             for k in range(parent_size, pop_size, 1)) 
             # Collect results
             for k in range(parent_size, pop_size, 1):
                 pop[k, dim] = ParallelResults[k - parent_size] 
 
 
-        # Sorted by obj (last index) to an order of low obj (good) to high obj (bad).       
+        # Sorted by obj (last index) to an order of low obj (good) to high obj
+        # (bad).       
         pop = pop[pop[:, dim].argsort()]                    
         self.pop = pop
         
@@ -458,9 +505,9 @@ class GeneticAlgorithm(object):
         # Initial Population (if it is to continue from last run with given
         # pickle file, this step will be skipped.)
         if self.continue_file is None:
-            self.initializePop()            # Randomly generate self.pop 
-            self.simPop(initialRun = True)  # Calculate obj for members in self.pop
-            self.mniwi_counter = 0       # max_iter_without_improv
+            self.initializePop()        # Randomly generate self.pop 
+            self.simPop(initialRun=True)# Calculate obj for members in self.pop
+            self.mniwi_counter = 0      # max_iter_without_improv
         ######################################################################
         # Store the best var and obj
         dim = self.dim
@@ -550,28 +597,35 @@ class GeneticAlgorithm(object):
             self.pop = pop      # Assign new population ready for simulation.
             
             # Calculate objs for pop
-            # Here is the safe point if WD is assigned and saveGADataPerIter = True   
+            # Here is the safe point if WD is assigned and saveGADataPerIter = 
+            # True   
             self.simPop()     
             if pop[0, dim] >= self.best_minobj:
                 self.mniwi_counter += 1
                 self.report.append(self.best_minobj)  
                 if self.mniwi_counter > mniwi:
-                    self.logger.warning("Reach the max_iter_without_improv. GA stop.")
+                    self.logger.warning("Reach the max_iter_without_improv. "+\
+                                        "GA stop.")
             else:
                 self.best_minobj = self.pop[0, dim].copy()
                 self.best_var = self.pop[0, :dim].copy()
                 self.report.append(self.best_minobj)   # record the history obj
             
+            self.end_time = datetime.now()
+            self.duration = self.end_time - self.start_time
             # Log current result
             current_result = {'Variable': self.best_var, 
                               'Objective': self.best_minobj,
-                              'Improve rate': (self.report[-1] - self.report[-2])/self.report[-2],
-                              'Duration': datetime.now() - self.start_time}
-            self.logger.info("\n=============> Results (Iter {}) <=============\n" \
+                              'Improve rate': (self.report[-1] - \
+                                              self.report[-2])/self.report[-2],
+                              'Duration': self.duration}
+            self.logger.info("\n===========> Results (Iter {}) <===========\n"\
                              .format(self.iter) + \
                              "\n".join(['{:^15} :  {}'.format(keys, values) \
                              for keys,values in current_result.items()]) )
             self.logger.info("Obj records: {}".format(self.report))
+            if plot and self.parallel == 2:
+                self.plotReport()
             # Next iteration
             self.iter += 1    # Iteration (generation of the population)    
             # End while
@@ -594,21 +648,24 @@ class GeneticAlgorithm(object):
             self.logger = RemoveLocalLogFile(self.logger, self.fh)
         
         if plot:
-            re = np.array(self.report)
-            fig, ax = plt.subplots()
-            ax.plot(re)
-            ax.set_xlabel('Iteration')
-            ax.set_ylabel('Objective function (min)')
-            ax.set_title('Genetic Algorithm')
-            props = dict(boxstyle='round', facecolor='wheat', alpha=0.85)
-            string = "Min objective: {}\nDuration: {}\nIteration: {}" \
-                .format(round(self.best_minobj, 3), self.duration, self.iter)
-            ax.annotate(string, xy= (0.6, 0.95), xycoords='axes fraction', \
-                        verticalalignment='top', horizontalalignment='left',\
-                        transform=ax.transAxes, fontsize=9, bbox = props)
+            self.plotReport()
         return None
     
-    
+    def plotReport(self):
+        re = np.array(self.report)
+        fig, ax = plt.subplots()
+        ax.plot(re)
+        ax.set_xlabel('Iteration')
+        ax.set_ylabel('Objective function (minization)')
+        ax.set_title('Genetic Algorithm')
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.85)
+        string = "Min objective: {}\nDuration: {}\nIteration: {}" \
+            .format(round(self.best_minobj, 3), self.duration, self.iter)
+        ax.annotate(string, xy= (0.6, 0.95), xycoords='axes fraction', \
+                    verticalalignment='top', horizontalalignment='left',\
+                    transform=ax.transAxes, fontsize=9, bbox = props)
+        plt.savefig(os.path.join(self.WD, "GA_report.png"), dpi = 500)
+            
     def cross(self, x, y, cross_type):
         ofs1 = x.copy()
         ofs2 = y.copy()
@@ -713,7 +770,8 @@ class GADataConverter(object):
     
     def Covert2GAArray(self, DataList, order = "C"):
         """
-        This function is able to convert a list of 1d or 2d array or df to 1d array. 
+        This function is able to convert a list of 1d or 2d array or df to 1d 
+        array. 
         order: "C", "F", "A". The Default is "C".
         #"C" means to flatten in row-major (C-style) order. 
         #"F" means to flatten in column-major (Fortran- style) order. 
@@ -724,7 +782,8 @@ class GADataConverter(object):
             self.logger.error("DataList needs to be a list.")
         for item in DataList:
             assert isinstance(item, (np.ndarray, pd.DataFrame)), \
-                self.logger.error("Elements in the DataList have to be either array or dataframe.")
+                self.logger.error("Elements in the DataList have to be "+\
+                                  "either array or dataframe.")
 
         self.orgpar_shape = []
         self.orgpar_type = {}
@@ -764,14 +823,21 @@ class GADataConverter(object):
         """Convert 1_D array back to original dfs and arrays."""
         if setting is None:
             assert self.orgpar_convert, \
-                self.logger.error("ValueError The function Covert2GAArray() has to be exercuted first or provide setting dictionary.")
+                self.logger.error("ValueError The function Covert2GAArray() "+\
+                                  "has to be exercuted first or provide "+\
+                                      "setting dictionary.")
             orgpar_type = self.orgpar_type
             order = self.orgpar_order
             orgpar_index = self.orgpar_index
             orgpar_shape = self.orgpar_shape
         else:
-            assert set(["orgpar_type","orgpar_order","orgpar_index","orgpar_shape"]).issubset(setting.keys()), \
-                self.logger.error("KeyError Setting dictionary has to contain keys: {}".format(["orgpar_type","orgpar_order","orgpar_index","orgpar_shape"]))
+            assert set(["orgpar_type","orgpar_order","orgpar_index", \
+                        "orgpar_shape"]).issubset(setting.keys()), \
+                self.logger.error("KeyError Setting dictionary has to "+\
+                                  "contain keys: {}".format(["orgpar_type",\
+                                                             "orgpar_order",\
+                                                             "orgpar_index",\
+                                                             "orgpar_shape"]))
             orgpar_type = setting["orgpar_type"]
             order = setting["orgpar_order"]
             orgpar_index = setting["orgpar_index"]
@@ -787,10 +853,12 @@ class GADataConverter(object):
                 df.index = v['ind']
                 self.orgParList.append(df)
             elif v == np.ndarray:
-                self.orgParList.append(np.reshape(var[orgpar_index[i]:orgpar_index[i+1]],\
-                                                  orgpar_shape[i], order))
+                self.orgParList.append(np.reshape(\
+                                      var[orgpar_index[i]:orgpar_index[i+1]],\
+                                      orgpar_shape[i], order))
             elif v == "1d":
-                self.orgParList.append(list(var[orgpar_index[i]:orgpar_index[i+1]]))
+                self.orgParList.append(\
+                                 list(var[orgpar_index[i]:orgpar_index[i+1]]))
         return self.orgParList
     
     def outputSetting(self):
@@ -805,21 +873,24 @@ class GADataConverter(object):
 # import numpy as np
 # from PyRAMID import PyRAMID
 
-
 # def f(var, GA_WD):
 #     print(GA_WD)
 #     return np.sum(var)
 
-
 # var_bound = np.array([[0,10]]*3)
-# model = RwABM.GeneticAlgorithm(function=f,dimension=3, WD = r"C:\Users\ResearchPC\Desktop",parallel = 2,
-#             saveGADataPerIter = True, variable_type='real',variable_boundaries=var_bound, Msglevel = 'info')
+# model = PyRAMID.GeneticAlgorithm(function=f,dimension=3, \
+#                                  WD = r"C:\Users\ResearchPC\Desktop",\
+#                                  parallel = 2,\
+#                                  saveGADataPerIter = True, \
+#                                  variable_type='real',\
+#                                  variable_boundaries=var_bound, \
+#                                  Msglevel = 'info')
 # model.runGA()
-
 
 # #%%
 # import numpy as np
 # from PyRAMID import PyRAMID
-# model2 = RWABM.GeneticAlgorithm(continue_file =  r"C:\Users\ResearchPC\Desktop\GAobject.pickle")
+# continue_file = r"C:\Users\ResearchPC\Desktop\GAobject.pickle"
+# model2 = PyRAMID.GeneticAlgorithm(continue_file = continue_file)
 # model2.runGA()
 

@@ -224,7 +224,7 @@ class PyRAMIDAnalysis(object):
         return ax
     
     
-def ProspectFuncPlot(alpha, beta, center = 0.5, k = 1, Title = None, xyLabal = None):
+def ProspectFuncPlot(alpha, beta, center = 0.5, k = 1, s = 5, interval = 0.025, Title = None, xyLabal = None, ax = None):
         
     if Title is None:
         Title = "Prospect Function" 
@@ -247,7 +247,7 @@ def ProspectFuncPlot(alpha, beta, center = 0.5, k = 1, Title = None, xyLabal = N
     
 
     # Create dots
-    x_dots = np.arange(0,1.025,0.025)
+    x_dots = np.arange(0,1+interval,interval)
     y_dots = x_dots.copy()
     
     y_dots_p = (x_dots[x_dots>=center]-center)/(1-center)
@@ -256,16 +256,18 @@ def ProspectFuncPlot(alpha, beta, center = 0.5, k = 1, Title = None, xyLabal = N
     y_dots[y_dots>=center] = (y_dots_p**alpha)*(1-center) + center
     y_dots[y_dots<center] = ( -k*(-np.sign(y_dots_n)*(np.abs(y_dots_n))**beta) )*center + center
     
-
-    fig, ax = plt.subplots()
+    if ax is None:
+        fig, ax = plt.subplots()
     ax.plot(p, p_new)
-    ax.scatter(x_dots, [0]*len(x_dots), s = 5, color = "black", marker = "x")
-    ax.scatter([0]*len(x_dots), y_dots, s = 5, color = "black", marker = "x")
+    ax.scatter(x_dots, [0]*len(x_dots), s = s, color = "black", marker = "x")
+    ax.scatter([0]*len(x_dots), y_dots, s = s, color = "black", marker = "x")
     #ax.legend(fontsize=9)
     ax.set_title(Title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_xlim([0,1])
     ax.set_ylim([0,1])
-    plt.show()
+    ax.tick_params(axis='both', which='major', labelsize=10)
+    if ax is None:
+        plt.show()
     return ax
