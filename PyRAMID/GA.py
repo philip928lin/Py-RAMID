@@ -505,9 +505,10 @@ class GeneticAlgorithm(object):
         # Initial Population (if it is to continue from last run with given
         # pickle file, this step will be skipped.)
         if self.continue_file is None:
+            self.mniwi_counter = 0      # max_iter_without_improv
             self.initializePop()        # Randomly generate self.pop 
             self.simPop(initialRun=True)# Calculate obj for members in self.pop
-            self.mniwi_counter = 0      # max_iter_without_improv
+            
         ######################################################################
         # Store the best var and obj
         dim = self.dim
