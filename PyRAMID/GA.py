@@ -9,7 +9,6 @@ import numpy as np
 from datetime import datetime
 from func_timeout import func_timeout, FunctionTimedOut
 from joblib import Parallel, delayed
-import multiprocessing
 import matplotlib.pyplot as plt
 import logging
 from tqdm import tqdm
@@ -39,6 +38,7 @@ class GeneticAlgorithm(object):
                                          'crossover_type':'uniform',\
                                          'max_iter_without_improv': None},\
                  continue_file = None,\
+                 seed = None, \
                  Msglevel = None):
         """
         Parameters
@@ -74,6 +74,7 @@ class GeneticAlgorithm(object):
                                                      'max_iter_without_improv': None}.
         continue_file : Assign the path of GAobject.pickle to continue the,
                         simulation. The default is None.
+        seed : Random seed for random number generator.
         Msglevel : 'debug', 'info', 'warning', 'error'. Level of print out 
                     message. The default is info (ConsoleLogParm['Msglevel']).
         """
@@ -106,7 +107,10 @@ class GeneticAlgorithm(object):
             # Re-assign fh with mode = "a", appending to the previous GA.log.
             self.logger, self.fh = AddLocalLogFile('GA.log', self.logger,\
                                                    self.WD, mode = "a") 
-            self.logger.info("========== Continue ==========")
+            self.logger.info("\n========== Continue ==========\n")
+            # Set random seed
+            if self.seed is not None:
+                np.random.seed(self.seed)
         else:
             # Check all input settings are valid.
             ##################################################################
@@ -135,6 +139,7 @@ class GeneticAlgorithm(object):
             self.best_minobj = None
             self.report = []
             self.iter = 0
+            self.pop_record = {}
         
             ##################################################################
             # Check inputs
@@ -171,14 +176,17 @@ class GeneticAlgorithm(object):
                                      .format(self.SubfolderPath))
             # Check and assign threads input
             if parallel != 0:
-                MaxThreads = multiprocessing.cpu_count()  # Max threads number
+                MaxThreads = int(os.cpu_count()/2)  # Max threads number/2 ~ cores
                 if threads is None or threads > MaxThreads:
                     self.NumThreads = MaxThreads
                 elif threads < 0: # -1: = MaxThreads
                     self.NumThreads = MaxThreads + 1 + threads
                 else:
                     self.NumThreads = threads
-                    
+            self.NumThreads = int(self.NumThreads)
+            # Check random seed
+            assert isinstance(seed, (type(None), int)),\
+                self.logger.error("TypeError seed must be integer or None.")
             ##################################################################
             # Assign input
             self.dim = int(dimension)
@@ -189,8 +197,12 @@ class GeneticAlgorithm(object):
                 function_timeout = 86400 # If None, we set timeout = 1 day
             self.funtimeout = int(function_timeout)
             self.continue_file = continue_file
-            
+            self.seed = seed
             ##################################################################
+            # Set random seed
+            if self.seed is not None:
+                np.random.seed(self.seed)
+                
             # Assign var_type and var_bound and var_index
             if variable_type_mixed is None: 
                 # We assign identical type according to variable_type to each 
@@ -364,8 +376,13 @@ class GeneticAlgorithm(object):
         return self.__dict__
     
     
-    def initializePop(self):
+    def initializePop(self, InitialPop = None):
         """Randomly generate the initial population."""
+        # If user provide their own InitialPop, then we don't generate ini pop.
+        if InitialPop is not None:
+            self.pop = InitialPop
+            return None
+        
         index_real = self.var_index["real"].astype(int)
         index_int = np.concatenate((self.var_index["int"], \
                                     self.var_index["cate"])).astype(int)
@@ -498,7 +515,7 @@ class GeneticAlgorithm(object):
         return None
         
 
-    def runGA(self, plot = True):
+    def runGA(self, plot = True, InitialPop = None, start_from_iter = None):
         # Start timing
         self.start_time = datetime.now()
 
@@ -506,10 +523,24 @@ class GeneticAlgorithm(object):
         # pickle file, this step will be skipped.)
         if self.continue_file is None:
             self.mniwi_counter = 0      # max_iter_without_improv
-            self.initializePop()        # Randomly generate self.pop 
+            # Randomly generate self.pop 
+            self.initializePop(InitialPop = InitialPop) 
+            self.pop_record["Iter0"] = self.pop
             self.simPop(initialRun=True)# Calculate obj for members in self.pop
+            self.pop_record["Iter0"] = self.pop
             
         ######################################################################
+        # Start from recorded specific iteration
+        # So the GA will use this iteration as intial "result" to form the next
+        # generation. Simulation happens at iteration + 1.
+        if start_from_iter is not None and start_from_iter <= self.iter and \
+            start_from_iter != 0:
+            # Clean report and assign pop and iter
+            dim = self.dim
+            self.report = self.report[:start_from_iter] 
+            self.pop = self.pop_record["Iter{}".format(start_from_iter)]
+            self.iter = start_from_iter
+            
         # Store the best var and obj
         dim = self.dim
         self.best_minobj = self.pop[0, dim].copy()
@@ -596,11 +627,13 @@ class GeneticAlgorithm(object):
                 pop[k+1, :dim] = child2.copy() 
                 pop[k+1, dim] = np.nan  
             self.pop = pop      # Assign new population ready for simulation.
+            self.pop_record["Iter{}".format(self.iter)] = pop
             
             # Calculate objs for pop
             # Here is the safe point if WD is assigned and saveGADataPerIter = 
             # True   
-            self.simPop()     
+            self.simPop()    
+            self.pop_record["Iter{}".format(self.iter)] = pop
             if pop[0, dim] >= self.best_minobj:
                 self.mniwi_counter += 1
                 self.report.append(self.best_minobj)  
