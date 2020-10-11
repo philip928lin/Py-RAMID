@@ -632,9 +632,9 @@ class GeneticAlgorithm(object):
             # Calculate objs for pop
             # Here is the safe point if WD is assigned and saveGADataPerIter = 
             # True   
-            self.simPop()    
-            self.pop_record["Iter{}".format(self.iter)] = pop
-            if pop[0, dim] >= self.best_minobj:
+            self.simPop()    # Will update self.pop
+            self.pop_record["Iter{}".format(self.iter)] = self.pop
+            if self.pop[0, dim] >= self.best_minobj:
                 self.mniwi_counter += 1
                 self.report.append(self.best_minobj)  
                 if self.mniwi_counter > mniwi:
