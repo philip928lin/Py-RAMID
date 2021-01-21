@@ -1,0 +1,70 @@
+{"AgentName": ["ROZW", "SNCW", "TIEW", "KNCW", "KTCW", "RSCW"],
+ "AgentSlots": {
+    "KNCW": {"DivSlots": ["DIVERSION Kennewick.Diversion"],
+             "FlowSlots": ["Yakima_River_at_Kiona.Gage_Inflow"]},
+    "KTCW": {"DivSlots": ["DIVERSION Kittitas.Diversion"],
+             "FlowSlots": ["Yakima_River_at_Parker_PARW.Gage_Inflow",
+                           "Yakima_River_at_Kiona.Gage_Inflow"]},
+    "ROZW": {"DivSlots": ["DIVERSION Roza Irrigation.Diversion"],
+             "FlowSlots": ["Yakima_River_at_Parker_PARW.Gage_Inflow",
+             			   "Yakima_River_at_Kiona.Gage_Inflow"]},
+    "RSCW": {"DivSlots": ["DIVERSION Reservation New.Diversion"],
+             "FlowSlots": ["Yakima_River_at_Parker_PARW.Gage_Inflow",
+                           "Yakima_River_at_Kiona.Gage_Inflow"]},
+    "SNCW": {"DivSlots": ["DIVERSION Sunnyside.Diversion",
+            			  "Sunnyside 3:DistributionCanal0.Return Flow",
+            			  "Sunnyside 4:DistributionCanal0.Return Flow",
+           			      "Sunnyside 5:DistributionCanal0.Return Flow",
+            			  "Sunnyside 6:DistributionCanal0.Return Flow"],
+        	 "FlowSlots": ["Yakima_River_at_Kiona.Gage_Inflow"]},
+    "TIEW": {"DivSlots": ["DIVERSION Tieton.Diversion"],
+             "FlowSlots": ["Yakima_River_at_Parker_PARW.Gage_Inflow",
+                           "Yakima_River_at_Kiona.Gage_Inflow"]}},
+ "FileContentDict": {
+    "BatchFile": {
+        "YAKRW2BatchFile.rcl": {
+            "OtherActionList": 
+                ["SetRunInfo #RunInfo !InitDate {10-31-1960 24:00} !EndDate {12-31-2005 24:00}",
+                 "StartController",
+                 "InvokeDMI CYLin_FinalOutput"],
+            "RWModelName": "YAKRW2_CYLin.mdl",
+            "RWModelRuleName": "YAKRW2_CYLin_Final.rls"}},
+    "ControlFile": {
+        "DMIControlFile_ABM2RW.control": {
+            "DataFolder": "ABM_Output_toRW",
+            "ObjectList": ["ABM_Diversion.ABM_KNCW",
+			                   "ABM_Diversion.ABM_KTCW",
+			                   "ABM_Diversion.ABM_ROZW",
+			                   "ABM_Diversion.ABM_RSCW",
+			                   "ABM_Diversion.ABM_SNCW",
+			                   "ABM_Diversion.ABM_TIEW"],
+            "Scales": "1.0",
+            "Units": "cfs"},
+        "DMIControlFile_RW2ABM.control": {
+            "DataFolder": "RW_Output_toABM",
+            "ObjectList": [
+                "Yakima River at Parker PARW.Gage Inflow",
+                "Yakima 202_0 at Easton EASW.Gage Inflow",
+                "Yakima River at Kiona.Gage Inflow",
+                "Naches 16_8 at Naches NACW.Gage Inflow",
+                "Yakima 127_98 at Roza Dam RBDW.Gage Inflow",
+                "DIVERSION Roza Irrigation.Diversion",
+                "DIVERSION Sunnyside.Diversion",
+                "Sunnyside 3:DistributionCanal0.Return Flow",
+                "Sunnyside 4:DistributionCanal0.Return Flow",
+                "Sunnyside 5:DistributionCanal0.Return Flow",
+                "Sunnyside 6:DistributionCanal0.Return Flow",
+                "DIVERSION Tieton.Diversion",
+                "DIVERSION Kennewick.Diversion",
+                "DIVERSION Kittitas.Diversion",
+                "DIVERSION Reservation New.Diversion"],
+            "Scales": "1.0",
+            "Units": "cfs"},
+        "DMIControlFile_FinalOutput.control": <Same as "DMIControlFile_RW2ABM.control">},
+    "Simulation": {"ABMoffsetYear": 2,
+			           "EndYear": 2005,
+			           "StartYear": 1960}}}
+			           
+			           
+			           
+			           
