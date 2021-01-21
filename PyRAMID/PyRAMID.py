@@ -12,6 +12,7 @@ we did in this file.
 
 from PyRAMID.RiverwareWrap import RiverwareWrap
 from PyRAMID.DiversionAgent import DiversionAgent
+from PyRAMID.Agent import DiversionAgent
 from PyRAMID.AnalysisWrap import PyRAMIDAnalysis, ProspectFuncPlot
 from PyRAMID.GA import GeneticAlgorithm, GADataConverter
 from PyRAMID.Setting import AddGlobalLogFile, setLoggerForCustomizedFile, createFolderWithDatetime
