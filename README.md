@@ -1,8 +1,11 @@
 # Py-RAMID
 A **Py**thon package of a **R**iverware and **A**gent-based **M**odeling **I**nterface for **D**evelopers.
 
+We developed a Python package of Riverware (RW, a river-reservoir routing model) and Agent-based Modeling (ABM, a human decision model) Interface for Developers, Py-RAMID, to address co-evolution challenges in a coupled natural-human system.
+
 Py-RAMID is designed to work under Windows environment. The following instructions are mainly done by conda environment.
 
+Contact: C.Y. Lin at philip928lin@gmail.com.
 
 # Install
 Py-RAMID can be installed by download the package from the [Py-RAMID Github repository](https://github.com/philip928lin/Py-RAMID). After that, unzip the file and move to the directory containing setting.py in the terminal or the conda prompt. Then, you should be able to install the package by
@@ -12,37 +15,54 @@ pip install .
 Py-RAMID is designed to work under Python 3.7 and Windows environment. The following instructions are mainly done by conda environment.
 
 
-Note: 
-> Before using Py-RAMID, please make sure the .py file can be executed through CMD with correct environment. In other words, evironment path has to be set correctly. For more details, please see Q&A "**Setting evironment path**".
+# Py-RAMID coupling concept
+![](https://i.imgur.com/WQhMuvi.png)
 
-# Pseudo code for coupling model development
-## Coupling model simulation
+**Fig. 1.** Py-RAMID framework and calibration structure. Two grey arrows indicate primary tasks performed by the Py-RAMID framework. Three background colors distinguish three modules in the Py-RAMID. Three user-prepared items are highlighted in red boxes. Feedback loop is shown with thick solid arrows.
+
+More details please see (Lin et al., 2021, submitted).
+
+# How to use it?
+## Prerequisites
+1. Install Py-RAMID.
+2. Make sure the .py file can be executed through CMD with correct environment. In other words, evironment path has to be set correctly. For more details, please see Q&A “Setting evironment path”.
+3. A valid [RiverWare](https://www.riverware.org/) license.
+
+## Inputs preparation
+With the assistance of Py-RAMID, modelers only need to prepare three items, with some modifications, in the original RW model. The three user-prepared items (highlighted by red rectangles in Fig. 1) are 
+1. ModelSetting (.json) file [Sample file is provided in the sample folder.]
+2. The modified RW model 
+4. The ABM model (.py)
+
+In the **ModelSetting (.json)** file, modelers define the information flow for data exchange between RW and ABM (import/export slots of the RW), the RW simulation periods, and other RW actions using RW command language (e.g., LoadRules). Using the information in ModelSetting (.json), Py-RAMID will create control (.control) and batch (.rcl) files. Data management interface (DMI) from the RW uses control files to determine the imported/exported slots. A batch file is used to execute the RW model with predefined action order (e.g., OpenWorkspace, LoadRules, and SetRunInfo). Therefore, Py-RAMID serves as a wrapper to help modelers form all required coupling files. However, modelers **must add two additional policies that are associated with the RW-to-ABM and ABM-to-RW DMIs into the original RW policy rules (.rls**) for the very first time. Inside those two additional policies, modelers can define data exchange frequency; for example, to export the RW data on 31 December of a year and re-import the data on 1 January of a year. For ABM.py, modelers have complete freedom to define agents and their interactions. Finally, Py-RAMID enables modelers to integrate their ABM.py into a unified logging system using **`setLoggerForCustomizedFile()`**. 
+## Sample code for a coupling model development
+### Coupling model simulation
 ```python=
 # =============================================================================
 # PyRAMID: Coupling Model Simulation
 # =============================================================================
 from PyRAMID import PyRAMID
 
-# Load model setting json file
+# Step 1: Load model setting json file
 ModelSetting = PyRAMID.readModelSettingFromJson("ModelSetting.json")
 
 
-# Create RiverwareWrap object with given working directory
+# Step 2: Create RiverwareWrap object with given working directory
 RwWrap = PyRAMID.RiverwareWrap( "WD" )
 # or copy from existed working folder, which path in RW model will be auto-updated.
 RwWrap = PyRAMID.RiverwareWrap( "New WD" , "Source WD")
 
-# Create simulation files 
+# Step 3: Create simulation related files 
 RwWrap.createFiles(FileContentDict = ModelSetting["FileContentDict"],
                    ABMpyFilename = "ABM.py")
 
-# Run simulation
+# Step 4: Run simulation
 RwWrap.runPyRAMID(RiverwarePath = "Riverware executable file path", 
                   BatchFileName = "BatchFile.rcl", 
                   ExecuteNow = True, Log = True)
 ```
 
-## Auto calibration with parallel genetic algorithm
+### Auto calibration with parallel genetic algorithm
 ```python=
 from PyRAMID import PyRAMID
 import os
