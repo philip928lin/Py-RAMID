@@ -2,12 +2,15 @@
 A **Py**thon package of a **R**iverware and **A**gent-based **M**odeling **I**nterface for **D**evelopers.
 
 Py-RAMID is designed to work under Windows environment. The following instructions are mainly done by conda environment.
+
+
 # Install
-Py-RAMID can be installed by
+Py-RAMID can be installed by download the package from the [Py-RAMID Github repository](https://github.com/philip928lin/Py-RAMID). After that, unzip the file and move to the directory containing setting.py in the terminal or the conda prompt. Then, you should be able to install the package by
 ```python
-pip install py-ramid
+pip install .
 ```
-or download this respository to your local machine, unzip, and install manually.
+Py-RAMID is designed to work under Python 3.7 and Windows environment. The following instructions are mainly done by conda environment.
+
 
 Note: 
 > Before using Py-RAMID, please make sure the .py file can be executed through CMD with correct environment. In other words, evironment path has to be set correctly. For more details, please see Q&A "**Setting evironment path**".
