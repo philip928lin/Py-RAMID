@@ -14,7 +14,7 @@ import subprocess
 import logging
 from datetime import datetime
 import pickle
-from PyRAMID.Setting import ConsoleLogParm, MsglevelDict, AddLocalLogFile, RemoveLocalLogFile
+from PyRAMID.Setting import ConsoleLogParm, MsglevelDict, AddLocalLogFile, RemoveLocalLogFile, AddGlobalLogFile, setLoggerForCustomizedFile
 
 class RiverwareWrap(object):
     def __init__(self, WD, copyFromRootForGA_RootPath = None, \
@@ -490,9 +490,13 @@ class RiverwareWrap(object):
         f.write("riverware.exe --batch {} --log {}"\
                 .format(os.path.join(self.PATH["BatchFiles_Path"], \
                                      BatchFileName).replace('\\','\\\\'), \
-                        os.path.join(self.PATH["BatchFiles_Path"], \
-                                     BatchFileName.split(".")[0]+".log")\
-                            .replace('\\','\\\\')))
+                        os.path.join(self.WD, "PyRAMID.log")))
+        # f.write("riverware.exe --batch {} --log {}"\
+        #         .format(os.path.join(self.PATH["BatchFiles_Path"], \
+        #                              BatchFileName).replace('\\','\\\\'), \
+        #                 os.path.join(self.PATH["BatchFiles_Path"], \
+        #                              BatchFileName.split(".")[0]+".log")\
+        #                     .replace('\\','\\\\')))
         f.close()
         self.logger.info("Creat RunBatch.bat file at {}."\
                          .format(os.path.join(self.WD, "RunBatch.bat")))
@@ -503,11 +507,17 @@ class RiverwareWrap(object):
             start_time = datetime.now()
             # Create the local log file for this run.
             if Log:
+                #Create local log file and remove later on
                 dt_string = datetime.now().strftime("%Y%m%d_%H%M%S")
                 Logfile = 'RunBatch_{}.log'.format(dt_string)
                 self.logger, self.fh = AddLocalLogFile(Logfile, self.logger, \
-                                                       self.WD)
+                                                        self.WD)
                 CreateFileHandler = True
+                
+                # Create global log file (Given exact same log file name) 
+                # GlobalLogFile = os.path.join(self.WD, "PyRAMID.log")
+                logger_RW = setLoggerForCustomizedFile(AbbrOfThisPyFile = "RW")
+                # AddGlobalLogFile(GlobalLogFile, mode = 'a')
                             
             self.logger.info("Execute RunBatch.bat file.")
             print("\n\nRunning PyRAMID.........     \n(This will take time. "+\
@@ -515,20 +525,38 @@ class RiverwareWrap(object):
                       "Batch folder.)")
             
             # Execute the RunBatch.bat using subprocess package 
-            # https://docs.python.org/3/library/subprocess.html
+            # https://docs.python.org/3/library/subprocess.html            
             cmd = os.path.join(self.WD, "RunBatch.bat").replace("\\","/")
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+            
             #self.logger.info(process.stdout.read(1))
             try:
-                # replace '' with b'' for Python 3
-                for c in iter(lambda: process.stdout.read(1), b''):  
-                    #self.logger.info(c)
-                    # This will garentee to print out the msg generated from RW 
-                    sys.stdout.write(c)    
+                while True:
+                    out = process.stdout.readline()#read(1)
+                    out = out.decode('utf-8').replace('\n', '')
+                    if out == '' and process.poll() is not None:
+                        break
+                    if out != '':
+                        logger_RW.info(out)
+                        sys.stdout.write(out)
+                        sys.stdout.flush()
             except:
                 self.logger.warning("Fail to print out RW log information. "+\
                                     "Please check the log file at Batch "+\
                                     "folder directly.")
+            # try:
+                
+                
+                
+            #     # replace '' with b'' for Python 3
+            #     # for c in iter(lambda: process.stdout.read(1), b''):  
+            #     #     #self.logger.info(c)
+            #     #     # This will garentee to print out the msg generated from RW 
+            #     #     sys.stdout.write(c)    
+            # except:
+            #     self.logger.warning("Fail to print out RW log information. "+\
+            #                         "Please check the log file at Batch "+\
+            #                         "folder directly.")
             
             # Read out Riverware.log
             f = open(os.path.join(self.PATH["BatchFiles_Path"], \
@@ -540,7 +568,6 @@ class RiverwareWrap(object):
             duration = end_time - start_time
             self.logger.info("\nFinish running RunBatch.bat file.\n"+\
                              "Duration: {}".format(duration))
-            
             # Remove the created file handler.
             if CreateFileHandler:    
                 self.logger = RemoveLocalLogFile(self.logger, self.fh)

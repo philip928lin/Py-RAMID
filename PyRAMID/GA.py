@@ -627,7 +627,7 @@ class GeneticAlgorithm(object):
                 pop[k+1, :dim] = child2.copy() 
                 pop[k+1, dim] = np.nan  
             self.pop = pop      # Assign new population ready for simulation.
-            self.pop_record["Iter{}".format(self.iter)] = pop
+            self.pop_record["Iter{}".format(self.iter)] = self.pop
             
             # Calculate objs for pop
             # Here is the safe point if WD is assigned and saveGADataPerIter = 
@@ -657,7 +657,7 @@ class GeneticAlgorithm(object):
                              .format(self.iter) + \
                              "\n".join(['{:^15} :  {}'.format(keys, values) \
                              for keys,values in current_result.items()]) )
-            self.logger.info("Obj records: {}".format(self.report))
+            self.logger.info("Obj records: {}\n".format(self.report))
             if plot and self.parallel == 2:
                 self.plotReport()
             # Next iteration

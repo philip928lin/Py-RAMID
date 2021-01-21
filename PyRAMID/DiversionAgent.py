@@ -83,7 +83,7 @@ class DiversionAgent(object):
                 Par[k] = float(Par[k])
             self.Par = Par
             self.Summery(Log = True)  # Only show if MsgLevel = debug
-            self.logger.info(self.agentname +": "+"Par has been loaded.\n")
+            self.logger.info(self.agentname +": "+"Par has been loaded.")
         # Determine the certainty of the quantile value = len(Samples)
         self.BetaN = None
         return None
@@ -154,7 +154,10 @@ class DiversionAgent(object):
         # $$$$$$$$$$$$$ Step 3 $$$$$$$$$$$$$ Social norm
         ## Note the order of AgentsProbArr and SocialNormMatrix row order have 
         ## to be consist.
-        self.calSocialNormEffect(AgentsProbArr = AgentsProbArr)
+        if AgentsProbArr is None:
+            pass
+        else:
+            self.calSocialNormEffect(AgentsProbArr = AgentsProbArr)
         # $$$$$$$$$$$$$ Step 4 $$$$$$$$$$$$$ To Beta distribution
         ## Turn a single value into a distribution. 
         ## The standard diviation depends on the length of the
@@ -228,6 +231,11 @@ class DiversionAgent(object):
             P = self.CurrentValue["quantile_social_adjusted"]
         # Beta baysian updating 
         a, b = P*N, (1-P)*N
+        
+        # To avoid zero issue
+        if a == 0: a = 0.1
+        if b == 0: b = 0.1
+        
         rv = beta(a, b)        
         # Discretize beta distribution
         p_beta = rv.cdf(np.arange(0, 1+resolution_beta, resolution_beta))
@@ -358,4 +366,40 @@ class DiversionAgent(object):
         self.logger.debug(self.agentname +": "+"AnnualdDivRatio = {}"\
                           .format(self.CurrentValue["AnnualdDivRatio"] ))
         return None
-    
+
+    def calSocialNormEffect2(self, AgentsProbArr, SocialNormMatrix):
+        '''
+        The index of the AgentsProbArr must conrepond to agent.index and the
+        row index of the SocialNormMatrix.
+        '''
+        # Blend agents own experience with neighbors'.
+        # AgentsProbArr is an array of all agents quentile values sorted with 
+        # their index.
+        # SocialNormMatrix is a matrix defining weight to belief others and 
+        # links. Row i col i is the agent i's weight to belief itself. Other 
+        # places in row i are binery values indicating whether to consider
+        # agent j's opinion.
+        AgentsProbArr = np.array(AgentsProbArr)
+        assert isinstance(AgentsProbArr, (np.ndarray, list)), \
+            self.logger.error("TypeError " + self.agentname +": "+\
+                        "AgentsProbArr has to be a 1-d list or a 1-d array.")
+        numAgent = len(AgentsProbArr)
+        assert SocialNormMatrix.shape == (numAgent, numAgent),\
+            self.logger.error("ValueError " + self.agentname +": "+\
+                              "Dimension is inconsist between AgentsProbArr "+\
+                              "and SocialNormMatrix.")
+  
+        BeliefSelf = SocialNormMatrix[self.index, self.index]
+        SumofLinks = sum(SocialNormMatrix[self.index,:])-BeliefSelf
+        if SumofLinks == 0:
+            assert BeliefSelf == 1, \
+                self.logger.error("ValueError " + self.agentname +": "+\
+                                  "BeliefSelf must be 1 since no social "+\
+                                  "links for this agent.")
+            WeightArray = np.zeros(len(AgentsProbArr))
+        else:
+            WeightArray = SocialNormMatrix[self.index,:]* \
+                            (1-BeliefSelf)/SumofLinks
+        WeightArray[self.index] = BeliefSelf                                               
+
+        return sum(AgentsProbArr*WeightArray)

@@ -24,7 +24,7 @@ FileLogParm = {"Msglevel": logging.INFO,
 FileLogParm_runRiverwareABM = {"Msglevel": logging.DEBUG,
             "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
             "DateFormate": None,
-            "Filename":"RunBatch.log"}
+            "Filename":"PyRAMID.log"}
 
 MsglevelDict = {"debug": logging.DEBUG,
                 "info": logging.INFO,
@@ -37,8 +37,8 @@ def AddGlobalLogFile(Filename = None, Directory = os.getcwd(), mode = 'w', \
                      Msglevel = None):
     if Filename is None:
         Filename = FileLogParm["Filename"]
-    else:
-        Filename = os.path.join(Directory, Filename)
+    # else:
+    #     Filename = os.path.join(Directory, Filename)
     # Create file handler at "root" level.
     logger = logging.getLogger("PyRAMID")
     logger.setLevel(logging.INFO)
@@ -58,8 +58,8 @@ def AddGlobalLogFile(Filename = None, Directory = os.getcwd(), mode = 'w', \
     # print the following message with package hierarchical structures.
     logger = logging.getLogger(__name__) 
     logger.setLevel(logging.INFO)
-    logger.info("Global log file is created at {}"\
-                .format(os.path.join(os.getcwd(),Filename[2:])))
+    #logger.info("Global log file is created at {}"\
+    #            .format(os.path.join(os.getcwd(),Filename[2:])))
     return None
 
 def AddLocalLogFile(filename, logger, Directory, mode = 'w', Msglevel = None):
