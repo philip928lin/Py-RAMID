@@ -1,6 +1,6 @@
 import setuptools
 
-setuptools.setup(name='py-ramid',
+setuptools.setup(name='pyramid',
                  version='1.0.1',
                  description='A python package of a Riverware and Agent-based Modeling Interface for Developers.',
                  url='',

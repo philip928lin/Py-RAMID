@@ -1,40 +1,40 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Aug 27 09:12:57 2020
-
-@author: CYLin
-"""
 import os
 import logging
 from datetime import datetime
 
 # This is for the console message printing. 
-ConsoleLogParm = {"Msglevel": logging.INFO,
-            "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
-            "DateFormate": '%m/%d %I:%M:%S'}
+ConsoleLogParm = {
+    "MsgLevel": logging.INFO,
+    "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
+    "DateFormate": '%m/%d %I:%M:%S'
+    }
 
 # This log file will not be implemented by default.
-FileLogParm = {"Msglevel": logging.INFO,
-            "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
-            "DateFormate": None,
-            "Filename":r".\RiverwareABM.log"}
+FileLogParm = {
+    "MsgLevel": logging.INFO,
+    "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
+    "DateFormate": None,
+    "Filename":r".\RiverwareABM.log"
+    }
 
-# This log file will be created automatically when exercute runRiverwareABM() 
-# in Riverware wrap.
-FileLogParm_runRiverwareABM = {"Msglevel": logging.DEBUG,
-            "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
-            "DateFormate": None,
-            "Filename":"PyRAMID.log"}
+# This log file will be created automatically when exercute  
+# runPyRAMID() in RiverwareWrap.
+FileLogParm_runRiverwareABM = {
+    "MsgLevel": logging.DEBUG,
+    "MsgFormat": '[%(asctime)s] %(name)s [%(levelname)s] %(message)s',
+    "DateFormate": None,
+    "Filename":"PyRAMID.log"
+    }
 
-MsglevelDict = {"debug": logging.DEBUG,
-                "info": logging.INFO,
-                "warning": logging.WARNING,
-                "error": logging.ERROR}
+MsglevelDict = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR
+    }
 
-
-
-def AddGlobalLogFile(Filename = None, Directory = os.getcwd(), mode = 'w', \
-                     Msglevel = None):
+def addGlobalLogFile(Filename=None, Directory=os.getcwd(), Mode='w', \
+                     MsgLevel=None):
     if Filename is None:
         Filename = FileLogParm["Filename"]
     # else:
@@ -42,14 +42,14 @@ def AddGlobalLogFile(Filename = None, Directory = os.getcwd(), mode = 'w', \
     # Create file handler at "root" level.
     logger = logging.getLogger("PyRAMID")
     logger.setLevel(logging.INFO)
-    fh = logging.FileHandler(Filename, mode) # 'w' Overwrite, 'a' append
-    if Msglevel is not None:
-        assert Msglevel in ['debug', 'info', 'warning', 'error'], \
-            print("ValueError Msglevel must be one of these [None, 'debug', "+\
+    fh = logging.FileHandler(Filename, Mode) # 'w' Overwrite, 'a' append
+    if MsgLevel is not None:
+        assert MsgLevel in ['debug', 'info', 'warning', 'error'], \
+            print("ValueError MsgLevel must be one of these [None, 'debug', "+\
                   "'info', 'warning', 'error'].")
-        fh.setLevel(MsglevelDict[Msglevel])
+        fh.setLevel(MsglevelDict[MsgLevel])
     else:
-        fh.setLevel(FileLogParm["Msglevel"])
+        fh.setLevel(FileLogParm["MsgLevel"])
     formatter_fh = logging.Formatter(FileLogParm["MsgFormat"], \
                                      datefmt=FileLogParm["DateFormate"])
     fh.setFormatter(formatter_fh)
@@ -62,7 +62,7 @@ def AddGlobalLogFile(Filename = None, Directory = os.getcwd(), mode = 'w', \
     #            .format(os.path.join(os.getcwd(),Filename[2:])))
     return None
 
-def AddLocalLogFile(filename, logger, Directory, mode = 'w', Msglevel = None):
+def addLocalLogFile(filename, logger, Directory, Mode='w', MsgLevel=None):
     '''
     This function is to add the local log file for modules within RiverwareABM
     package. 
@@ -71,21 +71,21 @@ def AddLocalLogFile(filename, logger, Directory, mode = 'w', Msglevel = None):
     setLoggerForCustomizedFile().
     '''
     Filename = os.path.join(Directory, filename)
-    fh = logging.FileHandler(Filename, mode) # w: Overwrite the file, a: append
-    if Msglevel is not None:
-        assert Msglevel in ['debug', 'info', 'warning', 'error'], \
-            print("ValueError Msglevel must be one of these [None, 'debug', "+\
-                  "'info', 'warning', 'error'].")
-        fh.setLevel(MsglevelDict[Msglevel])
+    fh = logging.FileHandler(Filename, Mode) # w: Overwrite the file, a: append
+    if MsgLevel is not None:
+        assert MsgLevel in ['debug', 'info', 'warning', 'error'], \
+            print("ValueError MsgLevel must be one of these [None, 'debug', "\
+                  + "'info', 'warning', 'error'].")
+        fh.setLevel(MsglevelDict[MsgLevel])
     else:
-        fh.setLevel(FileLogParm["Msglevel"])
+        fh.setLevel(FileLogParm["MsgLevel"])
     formatter_fh = logging.Formatter(FileLogParm["MsgFormat"], \
                                      datefmt=FileLogParm["DateFormate"])
     fh.setFormatter(formatter_fh)
     logger.addHandler(fh)
     return logger, fh
 
-def RemoveLocalLogFile(logger, fh):
+def removeLocalLogFile(logger, fh):
     '''
     This function is to remove the handler. 
     It is not designed to use outside of this package.
@@ -93,21 +93,21 @@ def RemoveLocalLogFile(logger, fh):
     logger.removeHandler(fh)
     return logger
 
-def setLoggerForCustomizedFile(AbbrOfThisPyFile, Msglevel = None):
+def setLoggerForCustomizedFile(AbbrOfThisPyFile, MsgLevel=None):
     '''
     This function help to get hierarchical logger under the root RiverwareABM 
     with the given abbreviation of your file.
-    Msglevel:  None, 'debug', 'info', 'warning', 'error'
+    MsgLevel:  None, 'debug', 'info', 'warning', 'error'
     '''
     # Add the hierarchical logger under the root RiverwareABM.
     logger = logging.getLogger("PyRAMID.{}".format(AbbrOfThisPyFile)) 
-    if Msglevel is not None:
-        assert Msglevel in ['debug', 'info', 'warning', 'error'], \
-            print("ValueError Msglevel must be one of these [None, 'debug', "+\
-                  "'info', 'warning', 'error'].")
-        logger.setLevel(MsglevelDict[Msglevel])
+    if MsgLevel is not None:
+        assert MsgLevel in ['debug', 'info', 'warning', 'error'], \
+            print("ValueError MsgLevel must be one of these [None, 'debug', "\
+                  + "'info', 'warning', 'error'].")
+        logger.setLevel(MsglevelDict[MsgLevel])
     else:
-        logger.setLevel(ConsoleLogParm["Msglevel"])
+        logger.setLevel(ConsoleLogParm["MsgLevel"])
     return logger
 
 def createFolderWithDatetime(WD, Folder):
