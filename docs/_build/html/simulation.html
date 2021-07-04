@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Simulation &mdash; Py-RAMID  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Calibration" href="calibration.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Py-RAMID
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Simulation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#inputs-preparation">Inputs preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-folder-structure">Working folder structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#modify-riverware-model">Modify RiverWare model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#copying-existed-working-folder-to-a-new-directory">Copying existed working folder to a new directory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Py-RAMID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Simulation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/simulation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="simulation">
+<h1>Simulation<a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="inputs-preparation">
+<span id="inputs"></span><h2>Inputs preparation<a class="headerlink" href="#inputs-preparation" title="Permalink to this headline">¶</a></h2>
+<p>To run a coupled model simulation, users need to prepare three inputs.</p>
+<ol class="arabic simple">
+<li><p>ModelSetting (.json) file. Template file is provided in the example folder.</p></li>
+<li><p>The modified RiverWare model (.mdl) and corresponding policy file (.rls).</p></li>
+<li><p>User-defined human model (.py) such as ABM.py.</p></li>
+</ol>
+<p>In the ModelSetting (.json) file, modelers define the information flow for data exchange between RiverWare (RW) and Human/Agent-based Model (ABM) (import/export slots of the RW), the RW simulation periods, and other RW actions using RW command language (e.g., LoadRules). Using the information in ModelSetting (.json), Py-RAMID will create control (.control) and batch (.rcl) files. Data management interface (DMI) from the RW uses control files to determine the imported/exported slots. A batch file is used to execute the RW model with predefined action order (e.g., OpenWorkspace, LoadRules, and SetRunInfo). Therefore, Py-RAMID serves as a wrapper to help modelers form all required coupling files. However, modelers must add two additional policies that are associated with the RW-to-ABM and ABM-to-RW DMIs into the original RW policy rules (.rls) for the very first time. Inside those two additional policies, modelers can define data exchange frequency; for example, to export the RW data on 31 December of a year and re-import the data on 1 January of a year. For ABM.py, modelers have complete freedom to define agents and their interactions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please create the working directory using Py-RAMID and put the corresponding files in the correct folder first; then, <a class="reference internal" href="#modify-riverware-model">Modify RiverWare model</a>.</p>
+</div>
+</div>
+<div class="section" id="working-folder-structure">
+<h2>Working folder structure<a class="headerlink" href="#working-folder-structure" title="Permalink to this headline">¶</a></h2>
+<p>The working folder structure created by Py-RAMID is shown below</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>WD
+├── BatchFiles
+├── batch file (.rcl)
+├── ABM
+│   ├── ABM.py
+│   └── ABM.bat/ABM.exe
+├── RW_Ini_Input
+├── RW_Output_toABM
+├── ABM_Output_toRW
+└── RWModel
+    ├── Control.control
+    ├── RWModel.mdl
+    └── RWPolicy.rls
+</pre></div>
+</div>
+<p>This folder structure can be automatically created by running the following code.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyramid</span> <span class="k">as</span> <span class="nn">PyRAMID</span>
+<span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;WD&quot;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>After initializing the working folder, users need to place the prepared <a class="reference internal" href="#inputs">inputs</a> into the corresponding folder.</p>
+<ul class="simple">
+<li><p>Put ModelSetting.json under WD</p></li>
+<li><p>Put RW model (.mdl), RW policy file (.rls), and other RW-related files under WD/RWModel</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only one .mdl file is allowed to be in RWModel folder.</p>
+</div>
+<ul class="simple">
+<li><p>Put human model (e.g., ABM.py) under ABM.</p></li>
+</ul>
+</div>
+<div class="section" id="modify-riverware-model">
+<h2>Modify RiverWare model<a class="headerlink" href="#modify-riverware-model" title="Permalink to this headline">¶</a></h2>
+<p>Py-RAMID builds the coupled model by utilizing the Data Management Interface (DMI) provided by RiverWare. Therefore, it is important for users to manually add DMI setting and two additional policies into policy file (.rls) at least one time. These two additional policies can trigger DMIs (one for import data and the other to export RW output) at desire timestep.</p>
+<p>Here we provide an example. However, we refer users to <a class="reference external" href="https://www.riverware.org/">RiverWare.org</a> for detail instructions.</p>
+<ol class="arabic simple">
+<li><p>After setup the ModelSetting.json, run the following code to create files for coupling.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load ModelSetting.json</span>
+<span class="n">ModelSetting</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">readModelSettingFromJson</span><span class="p">(</span><span class="s2">&quot;ModelSetting.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create files</span>
+<span class="n">RwWrap</span><span class="o">.</span><span class="n">createFiles</span><span class="p">(</span><span class="n">FileContentDict</span> <span class="o">=</span> <span class="n">ModelSetting</span><span class="p">[</span><span class="s2">&quot;FileContentDict&quot;</span><span class="p">],</span>
+                       <span class="n">ABMpyFilename</span> <span class="o">=</span> <span class="s2">&quot;ABM.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For DMIs setup, we need <strong>DoNothing.bat</strong> and <strong>ABM.bat</strong> or <strong>ABM.exe</strong>. If given ABM.py, Py-RAMID will automatically create <strong>DoNothing.bat</strong> and <strong>ABM.bat</strong> at the ABM folder.</p>
+<ol class="arabic simple" start="2">
+<li><p>Open RiverWare model (.mdl) and load Policy file (.rls). Then, add two DMIs shown below.</p></li>
+</ol>
+<img alt="_images/DMI.png" src="_images/DMI.png" />
+<ol class="arabic simple" start="3">
+<li><p>Open policy and add following two additional policies (usually with highest policy piority). At this step, users can assign desire information exchange frequency. In this example, we import the ABM output to RW on 1 January and export RW output on 31 December.</p></li>
+</ol>
+<img alt="_images/Policy.png" src="_images/Policy.png" />
+</div>
+<div class="section" id="copying-existed-working-folder-to-a-new-directory">
+<h2>Copying existed working folder to a new directory<a class="headerlink" href="#copying-existed-working-folder-to-a-new-directory" title="Permalink to this headline">¶</a></h2>
+<p>Once the first working directory is setup and successfully run the simulation. Users can use following code to copy existed working folder to a new directory for a new numerical experiment. Py-RAMID will automatically correct the path setting in RW. There is no need for manually modifying RiverWare model again.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;New WD&quot;</span> <span class="p">,</span> <span class="s2">&quot;Source WD&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Here we provide a sample code for running a coupled model simulation using Py-RAMID.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># =============================================================================</span>
+<span class="c1"># PyRAMID: Coupled Model Simulation</span>
+<span class="c1"># =============================================================================</span>
+<span class="kn">import</span> <span class="nn">pyramid</span> <span class="k">as</span> <span class="nn">PyRAMID</span>
+
+<span class="c1"># Step 1: Load model setting json file</span>
+<span class="n">ModelSetting</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">readModelSettingFromJson</span><span class="p">(</span><span class="s2">&quot;ModelSetting.json&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Step 2: Create RiverwareWrap object with given working directory</span>
+<span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;WD&quot;</span> <span class="p">)</span>
+<span class="c1"># or copy from existed working folder, which path in RW model will be auto-updated.</span>
+<span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;New WD&quot;</span> <span class="p">,</span> <span class="s2">&quot;Source WD&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 3: Create simulation related files</span>
+<span class="n">RwWrap</span><span class="o">.</span><span class="n">createFiles</span><span class="p">(</span><span class="n">FileContentDict</span> <span class="o">=</span> <span class="n">ModelSetting</span><span class="p">[</span><span class="s2">&quot;FileContentDict&quot;</span><span class="p">],</span>
+                   <span class="n">ABMpyFilename</span> <span class="o">=</span> <span class="s2">&quot;ABM.py&quot;</span><span class="p">)</span>
+
+<span class="c1"># Step 4: Run simulation</span>
+<span class="n">RwWrap</span><span class="o">.</span><span class="n">runPyRAMID</span><span class="p">(</span><span class="n">RiverwarePath</span> <span class="o">=</span> <span class="s2">&quot;Riverware executable file path&quot;</span><span class="p">,</span>
+                  <span class="n">BatchFileName</span> <span class="o">=</span> <span class="s2">&quot;BatchFile.rcl&quot;</span><span class="p">,</span>
+                  <span class="n">ExecuteNow</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">Log</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="calibration.html" class="btn btn-neutral float-right" title="Calibration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Chung-Yi Lin.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
