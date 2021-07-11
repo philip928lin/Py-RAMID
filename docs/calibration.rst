@@ -1,13 +1,13 @@
 Calibration
 ============
-The calibration module of Py-RAMID allows users to calibrate the coupled model with genetic algorithm in parallel. Due to the file-based coupling structure between RiverWare and human models (e.g., ABM), seperated working directory for each simuteniously simulated evaluation are required. To do that, users have to define an objective function with **var** and **GA_WD** arguments as shown below.
+The calibration module of Py-RAMID allows users to calibrate the coupled model with genetic algorithm in parallel. Due to the file-based coupling structure between RiverWare and human models (e.g., ABM), seperated working directory for each simuteniously simulated evaluation are required. To do that, users have to define an objective function with **var** and **SubWD** arguments as shown below.
 
 .. code-block:: python 
 
-	def ObjFunc(var, GA_WD):
-	    # Create RiverwareWrap object at GA_WD, which files will be copy and 
+	def ObjFunc(var, SubWD):
+	    # Create RiverwareWrap object at SubWD, which files will be copy and 
 	    # modified automatically from the source directory.
-	    RwWrap = PyRAMID.RiverwareWrap(GA_WD , "Source WD")
+	    RwWrap = PyRAMID.RiverwareWrap(SubWD , "Source WD")
 	    
 	    # Update parameters using var from GA.
 	    # Covert var (1sD array) from GA to original formats, DataFrame or Array.
@@ -41,11 +41,11 @@ Example
 	import os
 	import pyramid as PyRAMID
 	
-	# Define an objective function with var and GA_WD arguments
-	def ObjFunc(var, GA_WD):
-	    # Create RiverwareWrap object at GA_WD, which files will be copy and 
+	# Define an objective function with var and SubWD arguments
+	def ObjFunc(var, SubWD):
+	    # Create RiverwareWrap object at SubWD, which files will be copy and 
 	    # modified automatically from the source directory.
-	    RwWrap = PyRAMID.RiverwareWrap( GA_WD , "Source WD")
+	    RwWrap = PyRAMID.RiverwareWrap( SubWD , "Source WD")
 	    
 	    # Update parameters using var from GA.
 	    # Covert var (1D array) from GA to original formats, DataFrame or Array.
@@ -68,8 +68,8 @@ Example
 
 	# Create GA object with given working directory ga_WD
 	algorithm_parameters = {'max_num_iteration': 100,
-                            'population_size':100,
-                            'mutation_probability':0.3,
+                        	'population_size':100,
+                        	'mutation_probability':0.3,
                         	'elit_ratio': 0.03,
                         	'crossover_probability': 0.5,
                         	'parents_portion': 0.3,
@@ -81,7 +81,7 @@ Example
 	vartype =  [['real'], ['real'], ['real']]*NumAgent
 
 	AutoGA = PyRAMID.GeneticAlgorithm(function = ObjFunc, 
-                                      WD = ga_WD,
+                                      wd = ga_WD,
                                       dimension = len(vartype), 
                                       variable_boundaries = varbound, 
                                       variable_type_mixed = vartype, 
@@ -92,7 +92,7 @@ Example
                                       parallel = 2, 
                                       algorithm_parameters = algorithm_parameters,
                                       continue_file = None, 
-                                      Msglevel = None)
+                                      msg_level = None)
 
 	# Start calibration
 	AutoGA.runGA()

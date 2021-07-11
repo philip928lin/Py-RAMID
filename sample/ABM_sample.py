@@ -12,7 +12,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-from PyRAMID import PyRAMID
+from pyramid import PyRAMID
 
 # Import ModelSetting
 ModelSettingPath = r"C:\ModelSetting.json"

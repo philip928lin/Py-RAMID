@@ -15,8 +15,8 @@ from tqdm import tqdm
 import pickle
 import os
 from inspect import signature
-from pyramid.setting import (ConsoleLogParm, MsglevelDict, 
-                             addLocalLogFile, removeLocalLogFile)
+from .setting import (ConsoleLogParm, MsglevelDict, 
+                      addLocalLogFile, removeLocalLogFile)
 
 class GeneticAlgorithm(object):
     """ GeneticAlgorithm with parallel in computing."""
@@ -82,14 +82,14 @@ class GeneticAlgorithm(object):
         seed : Random seed for random number generator.
         msg_level : 'debug', 'info', 'warning', 'error'. 
             Level of print out message. The default is info 
-            (ConsoleLogParm['Msglevel']).
+            (ConsoleLogParm['MsgLevel']).
         """
         
         self.__name__ = "GA"
         ################################################################
         # Setup the log msg (console) (log file is added below.)
         self.logger = logging.getLogger(__name__)
-        if msg_level is None: msg_level = ConsoleLogParm['Msglevel']
+        if msg_level is None: msg_level = ConsoleLogParm['MsgLevel']
         else:
             assert msg_level in ['debug', 'info', 'warning', 'error'],\
                 print("ValueError msg_level must be one of these "+\
@@ -374,7 +374,11 @@ class GeneticAlgorithm(object):
                          "and ready to run.")
         
     def save_attribution(self, path):
-        """Save GAobject.pickle """
+        """Save GAobject.pickle
+
+        Args:
+            path (str): Save folder directory.
+        """
         dictionary = self.__dict__.copy()
         dictionary.pop('fh', None)  # handler cannot be pickled.
         dictionary.pop('logger', None)  # handler cannot be pickled.
@@ -386,26 +390,29 @@ class GeneticAlgorithm(object):
         print(self.__dict__)
         return self.__dict__
     
-    
+    #"""Randomly generate the initial population."""
     def initializePop(self, InitialPop=None):
-        """Randomly generate the initial population."""
-        # If user provide their own InitialPop, then we don't generate 
-        # ini pop.
-        if InitialPop is not None:
-            self.pop = InitialPop
-            return None
-        
+        """Randomly generate the initial population.
+
+        Args:
+            InitialPop (array, optional): Assigned initial population. 
+            InitialPop has to be a 2d array (NumPop, NumPar). NumPop has
+            to be smaller than the population_size. Defaults to None.
+
+        Returns:
+            None
+        """
         index_real = self.var_index["real"].astype(int)
         index_int = np.concatenate((self.var_index["int"], \
                                     self.var_index["cate"])).astype(int)
         pop_size = self.par['population_size']
         dim = self.dim
         var_bound = self.var_bound
-        
+       
         ## Create empty arrays
         self.pop = np.array([np.zeros(dim + 1)]*pop_size) # +1 for storing obj
-        self.var = np.zeros(dim)       
-        
+        self.var = np.zeros(dim)      
+       
         ## Randomly generate the initial variables set for members in the pop.
         for p in range(0, pop_size):
             for i in index_int:
@@ -416,7 +423,10 @@ class GeneticAlgorithm(object):
                               (var_bound[i][1] - var_bound[i][0])    
             self.pop[p,:dim] = self.var
             self.pop[p, dim] = np.nan       # no obj yet
-      
+       
+        ## Replace with given initial value.    
+        if InitialPop is not None:
+            self.pop[:InitialPop.shape[0],:dim] = InitialPop
         return None  
     
     def simPop(self, initialRun=False):  
@@ -435,7 +445,14 @@ class GeneticAlgorithm(object):
         function = self.func
         
         def sim0(X):
-            """for loop """
+            """For loop
+
+            Args:
+                X (array): 1d array of parameters.
+
+            Returns:
+                float: Objective value.
+            """
             def evaluation():   # In order to use func_timeout
                 return function(X)
             obj = None
@@ -451,7 +468,15 @@ class GeneticAlgorithm(object):
             return obj
         
         def sim1(X):    
-            """Parallel without creating subfolder"""
+            """Parallel without creating subfolder
+
+            Args:
+                X (array): 1d array of parameters.
+
+            Returns:
+                float: Objective value.
+            """
+            
             obj = None
             try:
                 obj = function(X)
@@ -461,10 +486,20 @@ class GeneticAlgorithm(object):
             return obj
         
         # For riverware coupling model.
-        def sim2(X, WD, Iteration, member):  
-            """Parallel with assigned copied subfolder path"""
-            SubFolderName = os.path.join(WD,"Iter{}_{}"\
-                                         .format(Iteration, member)) 
+        def sim2(X, wd, iteration, member):
+            """Parallel with assigned copied subfolder path
+
+            Args:
+                X (array): 1d array of parameters.
+                wd (str): Concurent simulation working folder.
+                iteration (int): Iteration (generation).
+                member (int): Member
+
+            Returns:
+                float: Objective value.
+            """
+            SubFolderName = os.path.join(wd,"Iter{}_{}"\
+                                         .format(iteration, member)) 
             obj = None
             try:
                 obj = function(X, SubFolderName)
@@ -510,7 +545,7 @@ class GeneticAlgorithm(object):
                 n_jobs = self.NumThreads, prefer="threads",
                 timeout=funtimeout)\
                 (delayed(sim2)(X=pop[k, :dim], wd=SubfolderPath, 
-                               Iteration=currentIter, member=k) \
+                               iteration=currentIter, member=k) \
                 for k in range(parent_size, pop_size, 1))
             
             # Collect results
@@ -533,6 +568,20 @@ class GeneticAlgorithm(object):
         
 
     def runGA(self, plot = True, InitialPop = None, start_from_iter = None):
+        """Run the genetic algorithm.
+
+        Args:
+            plot (bool, optional): Plot the progressive plot and 
+            save at GA folder. Defaults to True.
+            InitialPop (array, optional): Assigned initial population. 
+            InitialPop has to be a 2d array (NumPop, NumPar). NumPop has
+            to be smaller than the population_size. Defaults to None.
+            start_from_iter (int, optional): Assign starting iteration 
+            (only for continuous run). Defaults to None.
+
+        Returns:
+            None
+        """
         # Start timing
         self.start_time = datetime.now()
 
@@ -707,6 +756,7 @@ class GeneticAlgorithm(object):
         return None
     
     def plotReport(self):
+        """Plot progressive report."""
         re = np.array(self.report)
         fig, ax = plt.subplots()
         ax.plot(re)
@@ -723,6 +773,7 @@ class GeneticAlgorithm(object):
         plt.savefig(os.path.join(self.wd, "GA_report.png"), dpi = 500)
             
     def cross(self, x, y, cross_type):
+        """Uniform crossover."""
         ofs1 = x.copy()
         ofs2 = y.copy()
         dim = self.dim
@@ -751,6 +802,7 @@ class GeneticAlgorithm(object):
  
     
     def mut(self, x):
+        """Mutation."""
         prob_mut = self.par['mutation_probability']
         
         index_real = self.var_index["real"].astype(int)
@@ -772,6 +824,7 @@ class GeneticAlgorithm(object):
 
 
     def mutmiddle(self, x, p1, p2):
+        """Mutation bounded by parants."""
         prob_mut = self.par['mutation_probability']
         index_real = self.var_index["real"].astype(int)
         index_int = self.var_index["int"].astype(int)
@@ -811,6 +864,14 @@ class GeneticAlgorithm(object):
 
 class GADataConverter(object):
     def __init__(self, msg_level=None):
+        """The data converter for GA.
+
+        Args:
+            msg_level (str, optional): Message level. Defaults to None.
+
+        Returns:
+            object
+        """
         # Set loggar
         self.logger = logging.getLogger(__name__)
         if msg_level is None: msg_level = logging.INFO
@@ -820,9 +881,6 @@ class GADataConverter(object):
          # var back.
         self.orgpar_convert = False
         return None
-    
-    
-    def Covert2GAArray(self, dataList, order="C"):
         """Convert a list of 1d or 2d array or df to 1d array. 
         
         order: "C", "F", "A". The Default is "C".
@@ -830,6 +888,21 @@ class GADataConverter(object):
         #"F" means to flatten in column-major (Fortran- style) order. 
         #"A" means to flatten in column-major order if a is Fortran  
              contiguous in memory, row-major order otherwise.
+        """  
+    
+    def Covert2GAArray(self, dataList, order="C"):
+        """Convert a list of 1d or 2d arrays or dataframes to 1d array. 
+
+        Args:
+            dataList (list): List of 1d or 2d arrays or dataframes.
+            order (str, optional): "C" means to flatten in row-major 
+            (C-style) order. 
+            "F" means to flatten in column-major (Fortran- style) order. 
+            "A" means to flatten in column-major order if a is Fortran  . 
+            Defaults to "C".
+
+        Returns:
+            array: 1d array.
         """
         assert isinstance(dataList, list),\
             self.logger.error("dataList needs to be a list.")
@@ -873,7 +946,16 @@ class GADataConverter(object):
         return var
 
     def GAArray2OrgPar(self, var, setting=None):
-        """Convert 1_D array back to original dfs and arrays."""
+        """Convert 1d array back to original dfs and arrays.
+
+        Args:
+            var (array): 1d array.
+            setting (dict, optional): Setting of GADataConverter. 
+            Defaults to None.
+
+        Returns:
+            [list]: List of original data formats.
+        """
         if setting is None:
             assert self.orgpar_convert, \
                 self.logger.error("ValueError The function Covert2GAArray() "+\
@@ -915,6 +997,7 @@ class GADataConverter(object):
         return self.orgParList
     
     def outputSetting(self):
+        """Output setting dictionary of GADataConverter"""
         Setting = {"orgpar_type": self.orgpar_type,
                    "orgpar_order": self.orgpar_order,
                    "orgpar_index": self.orgpar_index,

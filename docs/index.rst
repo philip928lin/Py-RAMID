@@ -22,6 +22,7 @@ Py-RAMID is designed to work under Windows operating system.
    
    calibration
 
+   howtocite
 ..
  Indices and tables
  ==================

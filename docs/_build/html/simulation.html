@@ -96,6 +96,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="calibration.html">Calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howtocite.html">How to cite?</a></li>
 </ul>
 
             
@@ -226,8 +227,8 @@
 <span class="n">ModelSetting</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">readModelSettingFromJson</span><span class="p">(</span><span class="s2">&quot;ModelSetting.json&quot;</span><span class="p">)</span>
 
 <span class="c1"># Create files</span>
-<span class="n">RwWrap</span><span class="o">.</span><span class="n">createFiles</span><span class="p">(</span><span class="n">FileContentDict</span> <span class="o">=</span> <span class="n">ModelSetting</span><span class="p">[</span><span class="s2">&quot;FileContentDict&quot;</span><span class="p">],</span>
-                       <span class="n">ABMpyFilename</span> <span class="o">=</span> <span class="s2">&quot;ABM.py&quot;</span><span class="p">)</span>
+<span class="n">RwWrap</span><span class="o">.</span><span class="n">createFiles</span><span class="p">(</span><span class="n">FileContentDict</span><span class="o">=</span><span class="n">ModelSetting</span><span class="p">[</span><span class="s2">&quot;FileContentDict&quot;</span><span class="p">],</span>
+                       <span class="n">ABMpyFilename</span><span class="o">=</span><span class="s2">&quot;ABM.py&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For DMIs setup, we need <strong>DoNothing.bat</strong> and <strong>ABM.bat</strong> or <strong>ABM.exe</strong>. If given ABM.py, Py-RAMID will automatically create <strong>DoNothing.bat</strong> and <strong>ABM.bat</strong> at the ABM folder.</p>
@@ -262,16 +263,16 @@
 <span class="c1"># Step 2: Create RiverwareWrap object with given working directory</span>
 <span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;WD&quot;</span> <span class="p">)</span>
 <span class="c1"># or copy from existed working folder, which path in RW model will be auto-updated.</span>
-<span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;New WD&quot;</span> <span class="p">,</span> <span class="s2">&quot;Source WD&quot;</span><span class="p">)</span>
+<span class="n">RwWrap</span> <span class="o">=</span> <span class="n">PyRAMID</span><span class="o">.</span><span class="n">RiverwareWrap</span><span class="p">(</span> <span class="s2">&quot;New WD&quot;</span> <span class="p">,</span> <span class="s2">&quot;Source WD&quot;</span><span class="p">,</span> <span class="n">OverWrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Step 3: Create simulation related files</span>
-<span class="n">RwWrap</span><span class="o">.</span><span class="n">createFiles</span><span class="p">(</span><span class="n">FileContentDict</span> <span class="o">=</span> <span class="n">ModelSetting</span><span class="p">[</span><span class="s2">&quot;FileContentDict&quot;</span><span class="p">],</span>
-                   <span class="n">ABMpyFilename</span> <span class="o">=</span> <span class="s2">&quot;ABM.py&quot;</span><span class="p">)</span>
+<span class="n">RwWrap</span><span class="o">.</span><span class="n">createFiles</span><span class="p">(</span><span class="n">FileContentDict</span><span class="o">=</span><span class="n">ModelSetting</span><span class="p">[</span><span class="s2">&quot;FileContentDict&quot;</span><span class="p">],</span>
+                   <span class="n">ABMpyFilename</span><span class="o">=</span><span class="s2">&quot;ABM.py&quot;</span><span class="p">)</span>
 
 <span class="c1"># Step 4: Run simulation</span>
-<span class="n">RwWrap</span><span class="o">.</span><span class="n">runPyRAMID</span><span class="p">(</span><span class="n">RiverwarePath</span> <span class="o">=</span> <span class="s2">&quot;Riverware executable file path&quot;</span><span class="p">,</span>
-                  <span class="n">BatchFileName</span> <span class="o">=</span> <span class="s2">&quot;BatchFile.rcl&quot;</span><span class="p">,</span>
-                  <span class="n">ExecuteNow</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">Log</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">RwWrap</span><span class="o">.</span><span class="n">runPyRAMID</span><span class="p">(</span><span class="n">RiverwarePath</span><span class="o">=</span><span class="s2">&quot;Riverware executable file path&quot;</span><span class="p">,</span>
+                  <span class="n">BatchFileName</span><span class="o">=</span><span class="s2">&quot;BatchFile.rcl&quot;</span><span class="p">,</span>
+                  <span class="n">ExecuteNow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">Log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

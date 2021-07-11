@@ -71,8 +71,8 @@ Here we provide an example. However, we refer users to `RiverWare.org <https://w
    ModelSetting = PyRAMID.readModelSettingFromJson("ModelSetting.json")
 
    # Create files
-   RwWrap.createFiles(FileContentDict = ModelSetting["FileContentDict"],
-	                  ABMpyFilename = "ABM.py")
+   RwWrap.createFiles(FileContentDict=ModelSetting["FileContentDict"],
+	                  ABMpyFilename="ABM.py")
 
 For DMIs setup, we need **DoNothing.bat** and **ABM.bat** or **ABM.exe**. If given ABM.py, Py-RAMID will automatically create **DoNothing.bat** and **ABM.bat** at the ABM folder.
 
@@ -112,13 +112,13 @@ Here we provide a sample code for running a coupled model simulation using Py-RA
 	# Step 2: Create RiverwareWrap object with given working directory
 	RwWrap = PyRAMID.RiverwareWrap( "WD" )
 	# or copy from existed working folder, which path in RW model will be auto-updated.
-	RwWrap = PyRAMID.RiverwareWrap( "New WD" , "Source WD")
+	RwWrap = PyRAMID.RiverwareWrap( "New WD" , "Source WD", OverWrite=True)
 
 	# Step 3: Create simulation related files 
-	RwWrap.createFiles(FileContentDict = ModelSetting["FileContentDict"],
-	                   ABMpyFilename = "ABM.py")
+	RwWrap.createFiles(FileContentDict=ModelSetting["FileContentDict"],
+	                   ABMpyFilename="ABM.py")
 
 	# Step 4: Run simulation
-	RwWrap.runPyRAMID(RiverwarePath = "Riverware executable file path", 
-	                  BatchFileName = "BatchFile.rcl", 
-	                  ExecuteNow = True, Log = True)
+	RwWrap.runPyRAMID(RiverwarePath="Riverware executable file path", 
+	                  BatchFileName="BatchFile.rcl", 
+	                  ExecuteNow=True, Log=True)

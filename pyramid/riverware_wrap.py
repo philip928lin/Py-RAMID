@@ -13,12 +13,25 @@ import subprocess
 from datetime import datetime
 import logging
 import pandas as pd
-from pyramid.setting import (ConsoleLogParm, MsglevelDict, 
-                             addLocalLogFile, removeLocalLogFile, 
-                             addGlobalLogFile, setLoggerForCustomizedFile)
+from .setting import (ConsoleLogParm, MsglevelDict, 
+                      addLocalLogFile, removeLocalLogFile, 
+                      addGlobalLogFile, setLoggerForCustomizedFile)
 
 class RiverwareWrap(object):
-    def __init__(self, WD, RootPath=None, OverWrite=False, MsgLevel=None):
+    def __init__(self, WD, RootPath=None, Overwrite=False, MsgLevel=None):
+        """RiverWare wrapper for coupling.
+
+        Args:
+            WD (str): Working directory.
+            RootPath (str, optional): Source folder directory for copying.
+            Defaults to None.
+            Overwrite (bool, optional): Overwrite the folder if it exists.
+            Defaults to False.
+            MsgLevel (str, optional): Message level. Defaults to None.
+
+        Returns:
+            None
+        """
                  
         # Setup the log msg
         self.logger = logging.getLogger(__name__)
@@ -49,25 +62,25 @@ class RiverwareWrap(object):
                                   +"exist {}.".format(WD))
         self.WD = WD
         self.PATH = {
-            "ABMPath": os.path.join(WD, "ABM"),
-            "ABMOutputToRWPath": os.path.join(WD, "ABM_Output_toRW"),
-            "BatchFilesPath": os.path.join(WD, "BatchFiles"),
-            "RWFinalOutputPath": os.path.join(WD, "RW_Final_Output"),
-            "RWIniInputPath": os.path.join(WD, "RW_Ini_Input"),
-            "RWOutputToABMPath": os.path.join(WD, "RW_Output_toABM"),
-            "RWModelPath": os.path.join(WD, "RWModel")
+            "ABM_Path": os.path.join(WD, "ABM"),
+            "ABM_Output_toRW_Path": os.path.join(WD, "ABM_Output_toRW"),
+            "BatchFiles_Path": os.path.join(WD, "BatchFiles"),
+            "RW_Final_Output_Path": os.path.join(WD, "RW_Final_Output"),
+            "RW_Ini_Input_Path": os.path.join(WD, "RW_Ini_Input"),
+            "RW_Output_toABM_Path": os.path.join(WD, "RW_Output_toABM"),
+            "RWModel_Path": os.path.join(WD, "RWModel")
             }
         self.logger.info("Set working directory to {}.".format(WD))
         
         if RootPath is not None:
             self.copyFolder(Src = os.path.join(RootPath, "ABM"), 
-                            Dest = self.PATH["ABMPath"], OverWrite=OverWrite)
+                            Dest = self.PATH["ABM_Path"], Overwrite=Overwrite)
             self.copyFolder(Src = os.path.join(RootPath, "RWModel"), 
-                            Dest = self.PATH["RWModelPath"], 
-                            OverWrite = OverWrite)
+                            Dest = self.PATH["RWModel_Path"], 
+                            Overwrite = Overwrite)
             self.copyFolder(Src = os.path.join(RootPath, "RW_Ini_Input"), 
-                            Dest = self.PATH["RWIniInputPath"], 
-                            OverWrite = OverWrite)
+                            Dest = self.PATH["RW_Ini_Input_Path"], 
+                            Overwrite = Overwrite)
             self.logger.info("ABM and RWModel folders have been copied to {}."\
                              .format(self.WD))
             self.resetDMIPath2mdlFile() # modify .mdl DMI path
@@ -99,17 +112,24 @@ class RiverwareWrap(object):
         except:
             self.ArchiveFiles = {}
         return None
-    
 
-    def copyFolder(self, Src, Dest, OverWrite=False):
-        '''Copy the following Src folder to Dest. 
-        
-        Please make sure the Dest folder is not exist.
+    def copyFolder(self, Src, Dest, Overwrite=False):
+        """Copy the from Src folder to Dest.
+
         Note this function will not copy .control and year.txt files.
         .control and year.txt files should be created by PyRAMID.
-        '''
+        
+        Args:
+            Src (str): Source folder path.
+            Dest (str): Destination folder path.
+            Overwrite (bool, optional): Overwrite the folder if exist. 
+            Defaults to False.
+
+        Returns:
+            None
+        """
         # Remove the existed folder.
-        if os.path.exists(Dest) and OverWrite:
+        if os.path.exists(Dest) and Overwrite:
             shutil.rmtree(Dest)
             self.logger.warning('The following folder will be overwrited. {}'\
                                 .format(Dest))
@@ -126,42 +146,61 @@ class RiverwareWrap(object):
         return None
     
     def copyFile(self, Src, Dest):
+        """shutil.copyfile(Src, Dest)
+
+        Args:
+            Src (str): Source file path.
+            Dest (str): Destination file path.
+
+        Returns:
+            None
+        """
         shutil.copyfile(Src, Dest) # Will overwrite existed file 
         return None
-    
+
     def reduceStorageOfGivenFolder(self, ReduceLevel="keep_result_only"):
-        '''Delete folders.
+        """Delete folders to reduce storage.
+        
         Be careful when using this function. This function will delete 
-        the entire folder. Only applicable for the copied folder.
-        ReduceLevel: 'all', 'keep_result_only', None
-        '''
+        the entire folder. Only applicable for the copied folders.
+
+        Args:
+            ReduceLevel (str, optional): 'all', 'keep_result_only'. 
+            Defaults to "keep_result_only".
+
+        Returns:
+            None
+        """
+        
         if self.FolderCanBeDeleted:
             if ReduceLevel == 'all':     
                 # Whole working folder will be deleted. 
                 shutil.rmtree(self.WD)
             elif ReduceLevel == 'keep_result_only':
                 # Only keep BatchFiles, ABM and RWModel folders
-                shutil.rmtree(self.PATH["ABMOutputToRWPath"])
-                shutil.rmtree(self.PATH["RWIniInputPath"])
-                shutil.rmtree(self.PATH["RWOutputToABMPath"])
-                shutil.rmtree(self.PATH["RWModelPath"])               
+                shutil.rmtree(self.PATH["ABM_Output_toRW_Path"])
+                shutil.rmtree(self.PATH["RW_Ini_Input_Path"])
+                shutil.rmtree(self.PATH["RW_Output_toABM_Path"])
+                shutil.rmtree(self.PATH["RWModel_Path"])               
         else:
             self.logger.warning("Folders can only be deleted when they are "+\
                                 "copied from the root WD.")
         return None
-    
+
     def resetDMIPath2mdlFile(self):
-        '''Modify DMI path in the RiverWare .mdl file.
-        Note we will search through the RWModel folder for .mdl file. We 
-        expected to see a single .mdl file!
-        '''
-        Findmdl = os.listdir(self.PATH["RWModelPath"])
+        """Modify DMI path in the RiverWare .mdl file.
+
+        Returns:
+            None
+        """
+        
+        Findmdl = os.listdir(self.PATH["RWModel_Path"])
         Findmdl = [i for i in Findmdl if i[-4:] == ".mdl"]
         assert len(Findmdl) == 1, self.logger.error('ValueError We expect '+\
-              'to see one .mdl file at {}.'.format(self.PATH["RWModelPath"]))
+              'to see one .mdl file at {}.'.format(self.PATH["RWModel_Path"]))
         
         # r+: read and write
-        File = open(os.path.join(self.PATH["RWModelPath"], Findmdl[0]), "r+") 
+        File = open(os.path.join(self.PATH["RWModel_Path"], Findmdl[0]), "r+") 
         # Read
         RWFile = File.read()
         oldpath = self.RootPath.replace("\\","/") + "/"
@@ -178,34 +217,28 @@ class RiverwareWrap(object):
                          .format(Findmdl[0], self.WD))
         return None
         
-         
     def createControlFile(self, FileName, DataFolder, ObjectList=[],\
                           Units=None, Scales="1.0"):
-        '''Create control file for DMI in Riverware.
+        """Create control files for RiverWare.
 
-        Parameters
-        ----------
-        FileName : string
-            The FileName should consist to the name using in DMI setting 
-            in the Riverware.
-        DataFolder : string
-            Data folder in the working directory or the absolute folder 
-            directory.
-        ObjectList : list
-            Data files that you want to read/write by DMI. EX ["Yakima 
-            River at Parker PARW.Gage Inflow"]
-        Units : string/dict
-            Units for each data file. If enter a string, all data will 
-            be considered as this assiged unit. Or a dictionary should 
-            be provided. ex: {"cfs": [obj1, obj2, obj4], "m": [obj3]} 
-        Scales : string, optional
-            Scale. Same setting logic as Units. The default is "1.0".
+        Args:
+            FileName (str): The FileName should consist to the name 
+            using in DMI setting in the Riverware.
+            DataFolder (str): Data folder in the working directory 
+            or the absolute folder directory.
+            ObjectList (list, optional): Data files that you want to 
+            read/write by DMI. EX ["Yakima River at Parker PARW.Gage 
+            Inflow"]. Defaults to [].
+            Units (string/dict, optional): Units for each data file. 
+            If enter a string, all data will be considered as this 
+            assiged unit. Or a dictionary should be provided. 
+            ex: {"cfs": [obj1, obj2, obj4], "m": [obj3]} 
+            Scales (string/dict, optional): Scale. Same setting logic
+            as Units. The default is "1.0".. Defaults to "1.0".
 
-        Returns
-        -------
-        None.
-
-        '''
+        Returns:
+            None
+        """
         if os.path.isdir(DataFolder) and os.path.isabs(DataFolder):
             DataFolder_Path = DataFolder
         else:
@@ -233,45 +266,61 @@ class RiverwareWrap(object):
                 for o in objlist:
                     Content[o].append(s)
                     
-        File = open(os.path.join(self.PATH["RWModelPath"], FileName), "w")
+        File = open(os.path.join(self.PATH["RWModel_Path"], FileName), "w")
         for obj in ObjectList:
             File.write("{}: file={}/%o.%s units={} scale={} import=resize\n"\
                     .format(obj, DataFolder_Path, Content[obj][0], \
                             Content[obj][1]))
         File.close()
         self.logger.info("{} is created at {}"\
-                         .format(FileName, self.PATH["RWModelPath"]))
+                         .format(FileName, self.PATH["RWModel_Path"]))
         return None
     
     def createBatchFile(self, FileName, RWModelName, RWModelRuleName, \
                         OtherActionList=["StartController"]):
+        """Create batch file for RiverWare.
+
+        Args:
+            FileName (str): Batch file name.
+            RWModelName (str): RiverWare .mdl file name.
+            RWModelRuleName (str): RiverWare policy .rls file name.
+
+        Returns:
+            None
+        """
         # Form content dictionary
-        File = open(os.path.join(self.PATH["BatchFilesPath"], FileName), "w")
+        File = open(os.path.join(self.PATH["BatchFiles_Path"], FileName), "w")
         File.write("OpenWorkspace {}\n"\
-                .format(os.path.join(self.PATH["RWModelPath"], RWModelName)\
+                .format(os.path.join(self.PATH["RWModel_Path"], RWModelName)\
                         .replace('\\','\\\\')))
         File.write("LoadRules {}\n"\
-                .format(os.path.join(self.PATH["RWModelPath"], \
+                .format(os.path.join(self.PATH["RWModel_Path"], \
                                      RWModelRuleName).replace('\\','\\\\')))
         for a in OtherActionList:
             File.write(a+"\n")   
         File.write("CloseWorkspace")
         File.close()
         self.logger.info("{} is created at {}"\
-                         .format(FileName, self.PATH["BatchFilesPath"]))
+                         .format(FileName, self.PATH["BatchFiles_Path"]))
         return None
-    
+
     def createYeartxt(self, StartYear, EndYear, ABMoffsetYear=2):
-        '''
-        This year.txt is for ABM.py to read as reference. 
+        """Create year.txt for ABM model to read as reference.
+        
         Note that according to rule set in RW ABM might start at different 
         year. Use ABMoffsetYear to specify the offset year for the ABM.
-        '''
+
+        Args:
+            StartYear (int): Simulation start year.
+            EndYear (int): Simulation end year.
+            ABMoffsetYear (int, optional): Offset years for starting ABM. 
+            Defaults to 2.
+        """
     
         self.StartYear = StartYear
         self.EndYear = EndYear
         ### Create txt for dynamically record the current year
-        File = open(os.path.join(self.PATH["ABMPath"], "year.txt"), "w")
+        File = open(os.path.join(self.PATH["ABM_Path"], "year.txt"), "w")
         # This is the year that ABM start to simulate the diversion. 
         # According to our algorithm, we need at least a year record to  
         # run the algorithm.
@@ -281,10 +330,15 @@ class RiverwareWrap(object):
         File.write("End_year: " + str(EndYear) + '\n')
         File.close()
         self.logger.info("year.txt is created at {}"\
-                     .format(os.path.join(self.PATH["ABMPath"], "year.txt")))
+                     .format(os.path.join(self.PATH["ABM_Path"], "year.txt")))
         
     def getYearfromYeartxt(self):
-        File = open(os.path.join(self.PATH["ABMPath"], "year.txt"), "r") 
+        """Read year from year.txt.
+
+        Returns:
+            int: Current simulated year.
+        """
+        File = open(os.path.join(self.PATH["ABM_Path"], "year.txt"), "r") 
         y = int(File.readline()) # current year
         y_start = int(File.readline().split()[1])   
         y_end = int(File.readline().split()[1])  
@@ -296,8 +350,13 @@ class RiverwareWrap(object):
         return y 
     
     def addYear2Yeartxt(self):
+        """Add 1 year to year.txt.
+
+        Returns:
+            None
+        """
         # r+: read and write
-        File = open(os.path.join(self.PATH["ABMPath"], "year.txt"), "r+") 
+        File = open(os.path.join(self.PATH["ABM_Path"], "year.txt"), "r+") 
         # Read
         y = int(File.readline())  # current year
         y_start = File.readline() # already include "\n"
@@ -314,26 +373,24 @@ class RiverwareWrap(object):
         
     def writeRWInputFile(self, ObjSlotName, Data, Head, \
                          DataFolder="ABM_Output_toRW"):
-        '''Create input data file.
+        """Create input data file.
 
-        Parameters
-        ----------
-        ObjSlotName : string
-            The ObjSlotName is the filename, which should consist to the 
+        Args:
+            ObjSlotName (str): The ObjSlotName is the filename, 
+            which should consist to the 
             name in control files.
-        Data : list
-            List of the data, which the length should consist with the 
+            Data (list): List of the data, which the length 
+            should consist with the 
             date length in "Head".
-        Head : string
-            Pre-defined header for the input data file. The header is 
+            Head (str): Pre-defined header for the input data 
+            file. The header is 
             save in self.Header[<Head>].
-        DataFolder : string
-            Data located folder. The default is "ABM_Output_toRW".
-        Returns
-        -------
-        None.
+            DataFolder (str): Data located folder. The default 
+            is "ABM_Output_toRW".
 
-        '''
+        Returns:
+            None
+        """
         if os.path.isdir(DataFolder) and os.path.isabs(DataFolder):
             DataFolder_Path = DataFolder
         else:
@@ -353,6 +410,20 @@ class RiverwareWrap(object):
         return None
     
     def createFiles(self, FileContentDict, ABMpyFilename="ABM.py"):
+        """Create files for RiverWare.
+        
+        This will create control files, batch files, year.txt, 
+        and ABM.bat.
+
+        Args:
+            FileContentDict (dict): File content dictionary in the 
+            setting.json.
+            ABMpyFilename (str, optional): ABM model. 
+            Defaults to "ABM.py".
+
+        Returns:
+            None
+        """
         # Simulation period
         self.StartYear = FileContentDict["Simulation"]["StartYear"]
         self.EndYear = FileContentDict["Simulation"]["EndYear"]
@@ -388,34 +459,31 @@ class RiverwareWrap(object):
         
         # Create ABM.bat with given argument provide WD for ABM.py
         ABMbatFilename = "ABM.bat" #ABMpyFilename[:-3]+".bat"
-        File = open(os.path.join(self.PATH["ABMPath"], ABMbatFilename), "w")
+        File = open(os.path.join(self.PATH["ABM_Path"], ABMbatFilename), "w")
         # %~dp0  -> To run the bat or exe files at its directory.
         File.write("python %~dp0{} {}".format(ABMpyFilename, self.WD))  
         File.close()
         self.logger.info("{} is created at {}"\
                          .format(ABMbatFilename, 
-                                 os.path.join(self.PATH["ABMPath"], 
+                                 os.path.join(self.PATH["ABM_Path"], 
                                               ABMbatFilename)))
         return None
     
     def readRWOutputFile(self, Filename, DataFolder="RW_Output_toABM",
                          Freq="D"):
-        '''Read RW output to dataframe.
+        """Read RW output to dataframe.
 
-        Parameters
-        ----------
-        Filename : string
-            
-        DataFolder : string, optional
-            Data located folder.. The default is "RWOutputToABMPath".
-        Freq : string, optional
-            Frequency of the data. The default is "D".
+        Args:
+            Filename (str): File name.
+            DataFolder (str, optional): Data located folder.
+            Defaults to "RW_Output_toABM".
+            Freq (str, optional): Frequency of the data. 
+            Defaults to "D".
 
-        Returns
-        -------
-        df : DataFrame
+        Returns:
+            [DataFrame]: Dataframe.
+        """
 
-        '''
         if os.path.isdir(DataFolder) and os.path.isabs(DataFolder):
             DataFolder_Path = DataFolder
         else:
@@ -455,8 +523,16 @@ class RiverwareWrap(object):
         return df
     
     def createDoNothingBatFile(self, Path=None):
+        """Create do nothing .bat.
+
+        Args:
+            Path (str, optional): Folder directory. Defaults to None.
+
+        Returns:
+            None
+        """
         if Path is None: 
-            Path = self.PATH["ABMPath"]
+            Path = self.PATH["ABM_Path"]
         assert os.path.isdir(Path), \
             self.logger.error("PathError Given directory is not found {}"\
                               .format(Path))
@@ -469,28 +545,21 @@ class RiverwareWrap(object):
     
     def runPyRAMID(self, RiverwarePath, BatchFileName, ExecuteNow=True,
                    Log=True):
-        '''Execute PyRAMID through python code. 
-        First, the program will create 
-        the executable .bat file. Then, run the .bat file by subprocess python 
-        package.
-        All the run-time information will be stored in Main.log. The Riverware
-        software run-time information will be stored at BatchFiles folder. 
+        """Execute PyRAMID through python code. 
 
-        Parameters
-        ----------
-        RiverwarePath : string
-            Path of licensed Riverware.exe.
-        BatchFileName : string
-            The name of the batchfile (Riverware).
-        ExecuteNow : boolen, optional
-            If false, all related files will be created but not executed. 
-            The default is True.
+        Args:
+            RiverwarePath (str): Path of licensed Riverware.exe.
+            BatchFileName (str): The name of the batchfile (Riverware).
+            ExecuteNow (bool, optional): If false, all related files 
+            will be created but not executed. 
+             Defaults to True.
+            Log (bool, optional): Create log file if ture. 
+            Defaults to True.
 
-        Returns
-        -------
-        None.
-
-        '''
+        Returns:
+            None
+        """
+        
         assert os.path.isfile(os.path.join(RiverwarePath, "riverware.exe")), \
             self.logger.error("PathError riverware.exe is not found in the "+\
                               "given RiverwarePath {}".format(RiverwarePath))
@@ -499,13 +568,13 @@ class RiverwareWrap(object):
         File = open(os.path.join(self.WD, "RunBatch.bat"), "w")
         File.write("cd {}\n".format(RiverwarePath.replace('\\','\\\\')))
         # File.write("riverware.exe --batch {} --log {}"\
-        #         .format(os.path.join(self.PATH["BatchFilesPath"], \
+        #         .format(os.path.join(self.PATH["BatchFiles_Path"], \
         #                              BatchFileName).replace('\\','\\\\'), \
         #                 os.path.join(self.WD, "PyRAMID.log")))
         File.write("riverware.exe --batch {} --log {}"\
-                .format(os.path.join(self.PATH["BatchFilesPath"], \
+                .format(os.path.join(self.PATH["BatchFiles_Path"], \
                                       BatchFileName).replace('\\','\\\\'), \
-                        os.path.join(self.PATH["BatchFilesPath"], \
+                        os.path.join(self.PATH["BatchFiles_Path"], \
                                       BatchFileName.split(".")[0]+".log")\
                             .replace('\\','\\\\')))
         File.close()
@@ -559,7 +628,7 @@ class RiverwareWrap(object):
                                     "folder directly.")
 
             # Read out Riverware.log
-            File = open(os.path.join(self.PATH["BatchFilesPath"], \
+            File = open(os.path.join(self.PATH["BatchFiles_Path"], \
                                   BatchFileName.split(".")[0]+".log"), "r")
             for x in File:
                 self.logger.info(x)
@@ -574,9 +643,20 @@ class RiverwareWrap(object):
         return None
     
     def ObjSlotName2FileName(self, Name):
+        """Convert RiverWare slots' name to file name.
+        
+        Convert ObjSlot name or a list of names from RW to 
+        the filename, which RW replace the space and ":" to 
+        "_".
+
+        Args:
+            Name (str/list): RiverWare slots' name (list).
+
+        Returns:
+            [str/list]: File name (list).
+        """
         '''
-        Convert ObjSlot name or a list of names from RW to the filename, 
-        which RW replace the space and ":" to "_".
+        
         '''
         if isinstance(Name, str):
             Name = Name.replace(" ","_")
@@ -588,6 +668,15 @@ class RiverwareWrap(object):
             return Namelist
 
     def collectRW_Final_Output2CSV(self, filename=None):
+        """Collect RiverWare outputs into a CSV.
+
+        Args:
+            filename (str, optional): CSV file name. 
+            Defaults to None resulting in FinalOutput.csv.
+
+        Returns:
+            None
+        """
         # To make sure we have the following attributions.
         y = self.getYearfromYeartxt() 
         StartYear = self.StartYear
@@ -595,7 +684,7 @@ class RiverwareWrap(object):
         
         if filename is None:
             filename = os.path.join(self.WD, "FinalOutput.csv")
-        Slotslist = os.listdir(self.PATH["RWFinalOutputPath"])
+        Slotslist = os.listdir(self.PATH["RW_Final_Output_Path"])
         FinalOutput = pd.DataFrame()
         for i in Slotslist:
             df = self.readRWOutputFile(i, DataFolder="RW_Final_Output", \
@@ -607,18 +696,32 @@ class RiverwareWrap(object):
         return None
     
     def readCSV(self, filename):
+        """Read csv.
+
+        Args:
+            filename (str): CSV file name.
+
+        Returns:
+            [DataFrame]: Dataframe.
+        """
         df = pd.read_csv(filename, index_col=0, parse_dates=True)
         return df
 
 ## Archive files
     def createArchiveFile(self, Filename, Collect=True):
-        """ Create txt archive files.
-        Filename: Complete path or just txt filename. If users only provide txt
-                  filename, the archive files will be stored at Archive folder 
-                  under working directory.
-        Collect: True, then the filename and corresponding path will be saved 
-                 at ArchiveFilePath.pickle, which could be used by 
-                 ArchiveFiles2CSV().
+        """Create txt archive files.
+
+        Args:
+            Filename (str): Complete path or just txt filename. If 
+            users only provide txt filename, the archive files will 
+            be stored at Archive folder under working directory.
+            Collect (bool, optional): True, then the filename and 
+            corresponding path will be saved at 
+            ArchiveFilePath.pickle, which could be used by 
+            ArchiveFiles2CSV(). Defaults to True.
+
+        Returns:
+            None
         """
         Filename = Filename.replace("\\", "/")
         directory = "/".join(Filename.split("/")[:-1])
@@ -642,7 +745,21 @@ class RiverwareWrap(object):
         return None
     
     def archive(self, txt_filename, value, Collect=False):
-        """ Archive data. If file is not exist, creat a new one."""
+        """Archive data. 
+        
+        If file is not exist, creat a new one.
+
+        Args:
+            txt_filename (str): .txt file name.
+            value (float/str/list): Content to archive.
+            Collect (bool, optional): True, then the filename and 
+            corresponding path will be saved at 
+            ArchiveFilePath.pickle, which could be used by 
+            ArchiveFiles2CSV(). Defaults to False.
+
+        Returns:
+            None
+        """
         Filename = txt_filename.replace("\\", "/").split("/")[-1]
         if os.path.exists(txt_filename) is False:
             self.createArchiveFile(txt_filename, Collect)
@@ -655,6 +772,11 @@ class RiverwareWrap(object):
         return None
     
     def ArchiveFiles2CSV(self):
+        """Convert archived files in ArchiveFilePath.pickle to CSV
+
+        Returns:
+            [DataFrame]: Dataframe.
+        """
         # Try to search the WD for ArchiveFilePath.pickle
         try: 
             ArchiveFilePath = os.path.join(self.WD, "ArchiveFilePath.pickle")

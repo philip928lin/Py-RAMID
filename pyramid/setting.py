@@ -33,8 +33,18 @@ MsglevelDict = {
     "error": logging.ERROR
     }
 
-def addGlobalLogFile(Filename=None, Directory=os.getcwd(), Mode='w', \
-                     MsgLevel=None):
+def addGlobalLogFile(Filename=None, Mode='w', MsgLevel=None):
+    """Add a global log file.
+
+    Args:
+        Filename (str, optional): Log file name. Defaults to None.
+        Mode (str, optional): txt mode. Defaults to 'w'.
+        MsgLevel (str, optional): Message level. Defaults to None.
+
+    Returns:
+        None
+    """
+                     
     if Filename is None:
         Filename = FileLogParm["Filename"]
     # else:
@@ -63,13 +73,25 @@ def addGlobalLogFile(Filename=None, Directory=os.getcwd(), Mode='w', \
     return None
 
 def addLocalLogFile(filename, logger, Directory, Mode='w', MsgLevel=None):
-    '''
-    This function is to add the local log file for modules within RiverwareABM
-    package. 
-    This function can be use for files outside of RiverwareABM package if the
-    proper logger is given. To get the proper logger, we recommend user to run 
-    setLoggerForCustomizedFile().
-    '''
+    """Add local log file.
+    
+    This function is to add the local log file for modules within 
+    RiverwareABMpackage. 
+    This function can be use for files outside of RiverwareABM 
+    package if the proper logger is given. To get the proper  
+    logger, we recommend user to run setLoggerForCustomizedFile().
+
+    Args:
+        filename (str): Log file name.
+        logger (object): logger object.
+        Directory (str): Log file folder directory.
+        Mode (str, optional): .txt mode. Defaults to 'w'.
+        MsgLevel (str, optional): Message level. Defaults to None.
+
+    Returns:
+        [list]: A list contains logger and file handler.
+    """
+
     Filename = os.path.join(Directory, filename)
     fh = logging.FileHandler(Filename, Mode) # w: Overwrite the file, a: append
     if MsgLevel is not None:
@@ -86,19 +108,33 @@ def addLocalLogFile(filename, logger, Directory, Mode='w', MsgLevel=None):
     return logger, fh
 
 def removeLocalLogFile(logger, fh):
-    '''
-    This function is to remove the handler. 
-    It is not designed to use outside of this package.
-    '''
+    """Remove file handler from given logger.
+
+    Args:
+        logger (object): logger object.
+        fh (object): File handler object.
+
+    Returns:
+        object: logger object.
+    """
+
     logger.removeHandler(fh)
     return logger
 
 def setLoggerForCustomizedFile(AbbrOfThisPyFile, MsgLevel=None):
-    '''
-    This function help to get hierarchical logger under the root RiverwareABM 
-    with the given abbreviation of your file.
-    MsgLevel:  None, 'debug', 'info', 'warning', 'error'
-    '''
+    """Set logger.
+    
+    This function help to get hierarchical logger under the 
+    root RiverwareABM with the given abbreviation of your file.
+
+    Args:
+        AbbrOfThisPyFile (str): Abbreviation of .py file name.
+        MsgLevel (str, optional): Message level. 'debug', 'info',
+        'warning', 'error'. Defaults to None.
+
+    Returns:
+        object: logger
+    """
     # Add the hierarchical logger under the root RiverwareABM.
     logger = logging.getLogger("PyRAMID.{}".format(AbbrOfThisPyFile)) 
     if MsgLevel is not None:
@@ -111,6 +147,15 @@ def setLoggerForCustomizedFile(AbbrOfThisPyFile, MsgLevel=None):
     return logger
 
 def createFolderWithDatetime(WD, Folder):
+    """Create folder with datetime under given WD.
+
+    Args:
+        WD (str): Working directory.
+        Folder (str): Prefix of the folder name.
+
+    Returns:
+        [str]: Created folder's directory.
+    """
     assert os.path.isdir(WD),\
         print("PathError Given directory not exists. {}".format(WD))
     dt_string = datetime.now().strftime("%Y%m%d_%H%M%S")

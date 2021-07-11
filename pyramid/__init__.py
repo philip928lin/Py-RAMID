@@ -1,22 +1,22 @@
 import json
 import logging
-from pyramid.riverware_wrap import RiverwareWrap
-from pyramid.ga import GeneticAlgorithm, GADataConverter
-from pyramid.setting import (AddGlobalLogFile, 
-                             setLoggerForCustomizedFile, 
-                             createFolderWithDatetime,
-                             ConsoleLogParm)
+from .riverware_wrap import RiverwareWrap
+from .ga import GeneticAlgorithm, GADataConverter
+from .setting import (addGlobalLogFile, 
+                      setLoggerForCustomizedFile, 
+                      createFolderWithDatetime,
+                      ConsoleLogParm)
 
 print("\n\nWelcome to Py-RAMID!\nA python package of a Riverware and "
       + "Agent-based Modeling Interface for Developers.\n")
 
 logger = logging.getLogger(__name__)      # This is the root of logging.
-logger.setLevel(ConsoleLogParm["Msglevel"])
+logger.setLevel(ConsoleLogParm["MsgLevel"])
 
 # Clear all existed handlers and  add new console handler by default.
 logger.handlers.clear()
 ch = logging.StreamHandler()
-ch.setLevel(ConsoleLogParm["Msglevel"])
+ch.setLevel(ConsoleLogParm["MsgLevel"])
 formatter_ch = logging.Formatter(ConsoleLogParm["MsgFormat"], 
                                  datefmt=ConsoleLogParm["DateFormate"])
 ch.setFormatter(formatter_ch)
